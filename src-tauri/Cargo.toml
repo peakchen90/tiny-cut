@@ -1,0 +1,19 @@
+[package]
+name = "tiny-cut"
+version = "0.1.0"
+description = "A lightweight, open-source, cross-platform video trimming application"
+authors = ["you"]
+edition = "2021"
+
+[dependencies]
+tauri = { version = "2", features = [] }
+tauri-plugin-dialog = "2"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+axum = "0.7"
+tower-http = { version = "0.6", features = ["cors"] }
+tokio = { version = "1", features = ["net", "fs", "io-util"] }
+async-stream = "0.3"
+
+[build-dependencies]
+tauri-build = { version = "2", features = [] }
