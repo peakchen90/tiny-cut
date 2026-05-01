@@ -1,5 +1,5 @@
 use serde::Serialize;
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 use tauri::{command, AppHandle};
 
 use crate::ffmpeg;
@@ -11,15 +11,26 @@ pub struct TrimResult {
     output_path: Option<String>,
 }
 
-fn get_unique_path(path: &PathBuf) -> PathBuf {
+fn get_unique_path(path: &Path) -> PathBuf {
     if !path.exists() {
-        return path.clone();
+        return path.to_path_buf();
     }
-    
-    let ext = path.extension().unwrap_or_default().to_string_lossy().to_string();
-    let stem = path.file_stem().unwrap_or_default().to_string_lossy().to_string();
-    let parent = path.parent().map(|p| p.to_path_buf()).unwrap_or_else(|| PathBuf::from("."));
-    
+
+    let ext = path
+        .extension()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
+    let stem = path
+        .file_stem()
+        .unwrap_or_default()
+        .to_string_lossy()
+        .to_string();
+    let parent = path
+        .parent()
+        .map(|p| p.to_path_buf())
+        .unwrap_or_else(|| PathBuf::from("."));
+
     // Remove existing (n) suffix if any
     let clean_stem = if let Some(idx) = stem.rfind('(') {
         if stem.ends_with(')') {
@@ -30,7 +41,7 @@ fn get_unique_path(path: &PathBuf) -> PathBuf {
     } else {
         &stem
     };
-    
+
     let mut counter = 2;
     loop {
         let new_name = if ext.is_empty() {
@@ -69,7 +80,10 @@ pub async fn estimate_bitrate(
 }
 
 #[command]
-pub async fn get_video_info(app: AppHandle, input_path: String) -> Result<ffmpeg::VideoInfo, String> {
+pub async fn get_video_info(
+    app: AppHandle,
+    input_path: String,
+) -> Result<ffmpeg::VideoInfo, String> {
     let input = PathBuf::from(&input_path);
     if !input.exists() {
         return Err("Input file does not exist".into());
@@ -78,6 +92,7 @@ pub async fn get_video_info(app: AppHandle, input_path: String) -> Result<ffmpeg
 }
 
 #[command]
+#[allow(clippy::too_many_arguments)]
 pub async fn trim_video(
     app: AppHandle,
     input_path: String,
@@ -113,7 +128,16 @@ pub async fn trim_video(
 
     let result = match mode.as_str() {
         "fast" => ffmpeg::trim_fast(&app, &input_path, &final_path, start_secs, duration)?,
-        "precise" => ffmpeg::trim_precise(&app, &input_path, &final_path, start_secs, duration, width, height, fps)?,
+        "precise" => ffmpeg::trim_precise(
+            &app,
+            &input_path,
+            &final_path,
+            start_secs,
+            duration,
+            width,
+            height,
+            fps,
+        )?,
         _ => return Err(format!("Unknown mode: {}", mode)),
     };
 

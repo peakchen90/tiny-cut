@@ -61,7 +61,31 @@ export default function App() {
 
   const handleWindowDrag = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
     if (event.button !== 0) return;
+    if (event.detail > 1) return;
     void getCurrentWindow().startDragging().catch(() => {});
+  }, []);
+
+  const handleWindowControlPointerDown = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+  }, []);
+
+  const handleWindowMinimize = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    void getCurrentWindow().minimize().catch(() => {});
+  }, []);
+
+  const handleWindowMaximize = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    void getCurrentWindow().toggleMaximize().catch(() => {});
+  }, []);
+
+  const handleWindowClose = useCallback((event: React.PointerEvent<HTMLButtonElement>) => {
+    event.preventDefault();
+    event.stopPropagation();
+    void getCurrentWindow().close().catch(() => {});
   }, []);
 
   const handleMenuToggle = useCallback(() => {
@@ -164,20 +188,70 @@ export default function App() {
   }
 
   const trimDuration = trimRange.endTime - trimRange.startTime;
+  const isMac = navigator.platform.toLowerCase().includes("mac");
+  const titlebar = (
+    <div className={`app-titlebar ${isMac ? "app-titlebar-macos" : ""}`}>
+      <div
+        className="app-titlebar-drag"
+        data-tauri-drag-region
+        onMouseDown={handleWindowDrag}
+      />
+      {!isMac && (
+        <div className="window-controls">
+          <button
+            type="button"
+            className="window-control"
+            onPointerDown={handleWindowControlPointerDown}
+            onPointerUp={handleWindowMinimize}
+            title="Minimize"
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="currentColor">
+              <rect x="1" y="5" width="8" height="1" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="window-control"
+            onPointerDown={handleWindowControlPointerDown}
+            onPointerUp={handleWindowMaximize}
+            title="Maximize"
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1">
+              <rect x="2" y="2" width="6" height="6" />
+            </svg>
+          </button>
+          <button
+            type="button"
+            className="window-control window-control-close"
+            onPointerDown={handleWindowControlPointerDown}
+            onPointerUp={handleWindowClose}
+            title="Close"
+          >
+            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1.4" strokeLinecap="round">
+              <line x1="2" y1="2" x2="8" y2="8" />
+              <line x1="8" y1="2" x2="2" y2="8" />
+            </svg>
+          </button>
+        </div>
+      )}
+    </div>
+  );
 
   if (!filePath) {
     return (
       <div className="open-screen">
-        <div className="app-titlebar" onMouseDown={handleWindowDrag} />
-        <div
-          className={`open-dropzone ${dragOver ? "open-dropzone-hover" : ""}`}
-          onClick={handleOpenVideo}
-        >
-          <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
-            <line x1="12" y1="5" x2="12" y2="19" />
-            <line x1="5" y1="12" x2="19" y2="12" />
-          </svg>
-          <span className="open-dropzone-text">{t("dropVideo")}</span>
+        {titlebar}
+        <div className="open-content">
+          <div
+            className={`open-dropzone ${dragOver ? "open-dropzone-hover" : ""}`}
+            onClick={handleOpenVideo}
+          >
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round">
+              <line x1="12" y1="5" x2="12" y2="19" />
+              <line x1="5" y1="12" x2="19" y2="12" />
+            </svg>
+            <span className="open-dropzone-text">{t("dropVideo")}</span>
+          </div>
         </div>
       </div>
     );
@@ -185,7 +259,7 @@ export default function App() {
 
   return (
     <div className="editor">
-      <div className="app-titlebar" onMouseDown={handleWindowDrag} />
+      {titlebar}
 
       <VideoPlayer
         key={videoKey}

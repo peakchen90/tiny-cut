@@ -6,6 +6,7 @@ mod ffmpeg;
 mod video_server;
 
 use std::sync::atomic::{AtomicU16, Ordering};
+use tauri::{window::Color, Manager};
 
 static VIDEO_PORT: AtomicU16 = AtomicU16::new(0);
 
@@ -78,6 +79,18 @@ fn main() {
 
     tauri::Builder::default()
         .plugin(tauri_plugin_dialog::init())
+        .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                #[cfg(target_os = "macos")]
+                {
+                    window.set_decorations(true)?;
+                    window.set_title_bar_style(tauri::TitleBarStyle::Overlay)?;
+                }
+
+                window.set_background_color(Some(Color(0, 0, 0, 255)))?;
+            }
+            Ok(())
+        })
         .invoke_handler(tauri::generate_handler![
             commands::trim_video,
             commands::get_video_info,

@@ -65,13 +65,14 @@ jobs:
           workspaces: "./src-tauri -> target"
 
       - name: Install frontend dependencies
-        run: yarn install
+        run: yarn install --frozen-lockfile
 
       - name: Download FFmpeg binary
         shell: bash
         run: |
           mkdir -p src-tauri/binaries
-          curl -L -o "src-tauri/binaries/${{ matrix.ffmpeg_bin }}" "${{ matrix.ffmpeg_url }}"
+          curl -fL --http1.1 --retry 3 -o "src-tauri/binaries/${{ matrix.ffmpeg_bin }}" "${{ matrix.ffmpeg_url }}"
+          test -s "src-tauri/binaries/${{ matrix.ffmpeg_bin }}"
           chmod +x "src-tauri/binaries/${{ matrix.ffmpeg_bin }}"
 
       - name: Build the app

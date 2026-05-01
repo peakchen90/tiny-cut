@@ -19,6 +19,11 @@ pub struct VideoInfo {
 }
 
 fn ffmpeg_path(app: &tauri::AppHandle) -> String {
+    let sidecar_name = if cfg!(target_os = "windows") {
+        "ffmpeg.exe"
+    } else {
+        "ffmpeg"
+    };
     let bin_name = if cfg!(target_os = "windows") {
         "ffmpeg-x86_64-pc-windows-msvc.exe"
     } else if cfg!(target_arch = "aarch64") {
@@ -26,22 +31,25 @@ fn ffmpeg_path(app: &tauri::AppHandle) -> String {
     } else {
         "ffmpeg-x86_64-apple-darwin"
     };
-    // Try resource_dir first (production), fall back to src-tauri/binaries (dev)
+
+    // Production sidecars are bundled without the target triple suffix.
     if let Ok(resource) = app.path().resource_dir() {
+        let prod_path = resource.join(sidecar_name);
+        if prod_path.exists() {
+            return prod_path.to_string_lossy().to_string();
+        }
+
         let prod_path = resource.join("binaries").join(bin_name);
         if prod_path.exists() {
             return prod_path.to_string_lossy().to_string();
         }
     }
+
     // Development: resolve from Cargo manifest dir (src-tauri)
     let dev_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
         .join("binaries")
         .join(bin_name);
     dev_path.to_string_lossy().to_string()
-}
-
-fn ffprobe_path(app: &tauri::AppHandle) -> String {
-    ffmpeg_path(app).replace("ffmpeg", "ffprobe")
 }
 
 pub fn get_video_info(app: &tauri::AppHandle, input_path: &str) -> Result<VideoInfo, String> {
@@ -56,7 +64,10 @@ pub fn get_video_info(app: &tauri::AppHandle, input_path: &str) -> Result<VideoI
 
     // ffmpeg -i outputs to stderr
     let stderr = String::from_utf8_lossy(&output.stderr);
-    println!("get_video_info: stderr = {}", &stderr[..stderr.len().min(500)]);
+    println!(
+        "get_video_info: stderr = {}",
+        &stderr[..stderr.len().min(500)]
+    );
 
     let mut width = 0u32;
     let mut height = 0u32;
@@ -132,17 +143,20 @@ pub fn estimate_bitrate(
 ) -> Result<u64, String> {
     let ffmpeg = ffmpeg_path(app);
     let sample_duration = duration.min(1.0);
-    
+
     // Create temp file path
     let temp_dir = std::env::temp_dir();
     let temp_path = temp_dir.join("tiny_cut_estimate.mp4");
     let temp_path_str = temp_path.to_string_lossy().to_string();
-    
+
     let mut args = vec![
         "-y".to_string(),
-        "-ss".to_string(), format!("{:.3}", start_secs),
-        "-i".to_string(), input_path.to_string(),
-        "-t".to_string(), format!("{:.3}", sample_duration),
+        "-ss".to_string(),
+        format!("{:.3}", start_secs),
+        "-i".to_string(),
+        input_path.to_string(),
+        "-t".to_string(),
+        format!("{:.3}", sample_duration),
     ];
 
     // Video filter for resolution and fps
@@ -159,8 +173,10 @@ pub fn estimate_bitrate(
     }
 
     args.extend_from_slice(&[
-        "-c:v".to_string(), "libx264".to_string(),
-        "-c:a".to_string(), "aac".to_string(),
+        "-c:v".to_string(),
+        "libx264".to_string(),
+        "-c:a".to_string(),
+        "aac".to_string(),
         temp_path_str.clone(),
     ]);
 
@@ -176,20 +192,18 @@ pub fn estimate_bitrate(
     }
 
     // Get temp file size
-    let file_size = std::fs::metadata(&temp_path)
-        .map(|m| m.len())
-        .unwrap_or(0);
-    
+    let file_size = std::fs::metadata(&temp_path).map(|m| m.len()).unwrap_or(0);
+
     // Clean up temp file
     let _ = std::fs::remove_file(&temp_path);
-    
+
     if file_size == 0 {
         return Err("Failed to estimate bitrate: empty output".into());
     }
-    
+
     // Calculate bitrate: file_size (bytes) * 8 / sample_duration (seconds) = bits per second
     let bitrate = (file_size as f64 * 8.0) / sample_duration;
-    
+
     Ok(bitrate as u64)
 }
 
@@ -213,17 +227,24 @@ pub fn trim_fast(
 ) -> Result<FfmpegResult, String> {
     let ffmpeg = ffmpeg_path(app);
     println!("FFmpeg path: {}", ffmpeg);
-    println!("FFmpeg args: -y -ss {} -i {} -t {} -c copy -avoid_negative_ts 1 {}", 
-        start_secs, input_path, duration, output_path);
+    println!(
+        "FFmpeg args: -y -ss {} -i {} -t {} -c copy -avoid_negative_ts 1 {}",
+        start_secs, input_path, duration, output_path
+    );
 
     let output = Command::new(&ffmpeg)
         .args([
             "-y",
-            "-ss", &start_secs.to_string(),
-            "-i", input_path,
-            "-t", &duration.to_string(),
-            "-c", "copy",
-            "-avoid_negative_ts", "1",
+            "-ss",
+            &start_secs.to_string(),
+            "-i",
+            input_path,
+            "-t",
+            &duration.to_string(),
+            "-c",
+            "copy",
+            "-avoid_negative_ts",
+            "1",
             output_path,
         ])
         .output()
@@ -247,6 +268,7 @@ pub fn trim_fast(
     }
 }
 
+#[allow(clippy::too_many_arguments)]
 pub fn trim_precise(
     app: &tauri::AppHandle,
     input_path: &str,
@@ -260,9 +282,12 @@ pub fn trim_precise(
     let ffmpeg = ffmpeg_path(app);
     let mut args = vec![
         "-y".to_string(),
-        "-ss".to_string(), start_secs.to_string(),
-        "-i".to_string(), input_path.to_string(),
-        "-t".to_string(), duration.to_string(),
+        "-ss".to_string(),
+        start_secs.to_string(),
+        "-i".to_string(),
+        input_path.to_string(),
+        "-t".to_string(),
+        duration.to_string(),
     ];
 
     // Video filter for resolution and fps
@@ -279,9 +304,12 @@ pub fn trim_precise(
     }
 
     args.extend_from_slice(&[
-        "-c:v".to_string(), "libx264".to_string(),
-        "-c:a".to_string(), "aac".to_string(),
-        "-movflags".to_string(), "+faststart".to_string(),
+        "-c:v".to_string(),
+        "libx264".to_string(),
+        "-c:a".to_string(),
+        "aac".to_string(),
+        "-movflags".to_string(),
+        "+faststart".to_string(),
         output_path.to_string(),
     ]);
 

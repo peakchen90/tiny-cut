@@ -1,3 +1,7 @@
+html {
+  background: #000;
+}
+
 *,
 *::before,
 *::after {
@@ -18,13 +22,35 @@ html, body, #root {
   user-select: none;
 }
 
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  background: #000;
+  pointer-events: none;
+}
+
+#root {
+  position: relative;
+  z-index: 0;
+  min-width: 100vw;
+  min-height: 100vh;
+}
+
 /* ── Open Screen ── */
 .open-screen {
-  position: relative;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.open-content {
+  flex: 1;
+  min-height: 0;
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 100%;
 }
 
 .open-dropzone {
@@ -69,12 +95,63 @@ html, body, #root {
 }
 
 .app-titlebar {
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
+  width: 100%;
   height: 38px;
+  flex-shrink: 0;
   z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 0 8px;
+}
+
+.app-titlebar-drag {
+  flex: 1;
+  height: 100%;
+  min-width: 0;
+}
+
+.app-titlebar-macos {
+  padding-left: 78px;
+  padding-right: 0;
+}
+
+*[data-tauri-drag-region] {
+  -webkit-app-region: drag;
+  app-region: drag;
+}
+
+.window-controls {
+  display: flex;
+  align-items: center;
+  height: 100%;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.window-control {
+  width: 38px;
+  height: 30px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: rgba(255, 255, 255, 0.62);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: default;
+  -webkit-app-region: no-drag;
+  app-region: no-drag;
+}
+
+.window-control:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: rgba(255, 255, 255, 0.9);
+}
+
+.window-control-close:hover {
+  background: #e81123;
+  color: #fff;
 }
 
 .editor-preview {
