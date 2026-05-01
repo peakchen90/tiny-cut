@@ -1,0 +1,177 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>TinyCut - A Lightweight Video Trimming App</title>
+  <meta name="description" content="TinyCut is a lightweight, open-source, cross-platform video trimming application. Fast, precise, and privacy-first.">
+  <link rel="stylesheet" href="style.css">
+  <link rel="icon" href="icon.png">
+</head>
+<body>
+
+  <!-- Header -->
+  <header class="header">
+    <div class="container">
+      <div class="header-brand">
+        <img src="icon.png" alt="TinyCut" width="24" height="24">
+        TinyCut
+      </div>
+      <div class="lang-switch">
+        <button data-lang="en" class="active">EN</button>
+        <button data-lang="zh">中</button>
+      </div>
+    </div>
+  </header>
+
+  <!-- Hero -->
+  <section class="hero">
+    <h1>TinyCut</h1>
+    <p class="tagline" data-en="A lightweight, open-source, cross-platform video trimming application" data-zh="一款轻量级、开源、跨平台的视频剪辑应用"></p>
+    <div class="platforms">
+      <span class="platform-badge">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M18.71 19.5C17.88 20.74 17 21.95 15.66 21.97C14.32 22 13.89 21.18 12.37 21.18C10.84 21.18 10.37 21.95 9.1 22C7.79 22.05 6.8 20.68 5.96 19.47C4.25 16.97 2.94 12.45 4.7 9.39C5.57 7.87 7.13 6.91 8.82 6.88C10.1 6.86 11.32 7.75 12.11 7.75C12.89 7.75 14.37 6.68 15.92 6.84C16.57 6.87 18.39 7.1 19.56 8.82C19.47 8.88 17.39 10.1 17.41 12.63C17.44 15.65 20.06 16.66 20.09 16.67C20.06 16.74 19.67 18.11 18.71 19.5ZM13 3.5C13.73 2.67 14.94 2.04 15.94 2C16.07 3.17 15.6 4.35 14.9 5.19C14.21 6.04 13.07 6.7 11.95 6.61C11.8 5.46 12.36 4.26 13 3.5Z"/></svg>
+        macOS
+      </span>
+      <span class="platform-badge">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M0 3.449L9.75 2.1v9.451H0m10.949-9.602L24 0v11.4H10.949M0 12.6h9.75v9.451L0 20.699M10.949 12.6H24V24l-12.9-1.801"/></svg>
+        Windows
+      </span>
+    </div>
+  </section>
+
+  <!-- Screenshots -->
+  <section class="screenshots">
+    <div class="screenshots-inner">
+      <img src="screenshot01.png" alt="TinyCut screenshot 1 - Video loaded with trim timeline" loading="lazy">
+      <img src="screenshot02.png" alt="TinyCut screenshot 2 - Export settings dialog" loading="lazy">
+    </div>
+  </section>
+
+  <!-- Features -->
+  <section class="features">
+    <h2 class="section-title" data-en="Why TinyCut?" data-zh="为什么选择 TinyCut？"></h2>
+    <p class="section-desc" data-en="Everything you need to trim videos, nothing you don't." data-zh="只保留你需要的视频剪切功能，简洁而不简单。"></p>
+    <div class="features-grid">
+      <div class="feature-card">
+        <div class="feature-icon">&#9889;</div>
+        <h3 data-en="Fast Trim" data-zh="快速剪切"></h3>
+        <p data-en="No re-encoding needed. Cut your videos instantly while preserving the original quality." data-zh="无需重新编码，瞬间完成剪切，完整保留原始画质。"></p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#127919;</div>
+        <h3 data-en="Precise Trim" data-zh="精准剪切"></h3>
+        <p data-en="Frame-accurate cutting with re-encoding for when precision matters." data-zh="逐帧精确裁剪，重新编码确保每一帧都精准到位。"></p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128065;</div>
+        <h3 data-en="Simple &amp; Intuitive" data-zh="简洁直观"></h3>
+        <p data-en="Clean interface focused on the essentials. No clutter, no learning curve." data-zh="清爽的界面聚焦核心功能，没有杂乱元素，零学习成本。"></p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128229;</div>
+        <h3 data-en="Drag &amp; Drop" data-zh="拖拽支持"></h3>
+        <p data-en="Simply drag your video files into the app. It just works." data-zh="直接将视频文件拖入窗口即可开始剪辑，简单高效。"></p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128736;</div>
+        <h3 data-en="Built-in FFmpeg" data-zh="内置 FFmpeg"></h3>
+        <p data-en="No external dependencies to install. Download, open, and start trimming." data-zh="无需安装任何外部依赖，下载即用，开箱即剪。"></p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128293;</div>
+        <h3 data-en="GPU Acceleration" data-zh="GPU 加速"></h3>
+        <p data-en="Hardware encoding support: VideoToolbox on macOS, NVENC on Windows." data-zh="硬件编码加速：macOS 使用 VideoToolbox，Windows 使用 NVENC。"></p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#128274;</div>
+        <h3 data-en="Privacy First" data-zh="隐私安全"></h3>
+        <p data-en="All processing happens locally on your machine. Your videos never leave your device." data-zh="所有处理均在本地完成，你的视频永远不会离开你的设备。"></p>
+      </div>
+      <div class="feature-card">
+        <div class="feature-icon">&#127760;</div>
+        <h3 data-en="Cross Platform" data-zh="跨平台"></h3>
+        <p data-en="Works on macOS (Intel &amp; Apple Silicon) and Windows. One app, every machine." data-zh="支持 macOS（Intel 和 Apple Silicon）和 Windows，一个应用覆盖所有平台。"></p>
+      </div>
+    </div>
+  </section>
+
+  <!-- Download -->
+  <section class="download">
+    <h2 class="section-title" data-en="Download TinyCut" data-zh="下载 TinyCut"></h2>
+    <p class="section-desc" data-en="Free and open-source. Available for macOS and Windows." data-zh="免费开源，支持 macOS 和 Windows 平台。"></p>
+    <div class="download-grid">
+      <div class="download-card">
+        <div class="download-icon">&#127822;</div>
+        <h3>macOS</h3>
+        <p class="download-meta" data-en="Apple Silicon (M1/M2/M3/M4)" data-zh="Apple Silicon (M1/M2/M3/M4)"></p>
+        <a class="btn-download" id="dl-mac-arm" href="#" data-en='Download' data-zh="下载" aria-label="Download for macOS Apple Silicon">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span data-en="Download" data-zh="下载"></span>
+        </a>
+      </div>
+      <div class="download-card">
+        <div class="download-icon">&#127822;</div>
+        <h3>macOS</h3>
+        <p class="download-meta" data-en="Intel" data-zh="Intel 芯片"></p>
+        <a class="btn-download" id="dl-mac-x64" href="#" data-en='Download' data-zh="下载" aria-label="Download for macOS Intel">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span data-en="Download" data-zh="下载"></span>
+        </a>
+      </div>
+      <div class="download-card">
+        <div class="download-icon">&#128187;</div>
+        <h3>Windows</h3>
+        <p class="download-meta" data-en="x64 Installer" data-zh="x64 安装包"></p>
+        <a class="btn-download" id="dl-win" href="#" data-en='Download' data-zh="下载" aria-label="Download for Windows">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+          <span data-en="Download" data-zh="下载"></span>
+        </a>
+      </div>
+    </div>
+    <details class="download-note">
+      <summary data-en="macOS: App shows &quot;is damaged&quot;?" data-zh="macOS 提示"应用已损坏"？"></summary>
+      <p data-en="macOS may block apps downloaded outside the App Store. Open Terminal and run:" data-zh="macOS 可能会阻止从非 App Store 下载的应用。打开终端执行以下命令即可解决："></p>
+      <code>xattr -cr /Applications/TinyCut.app</code>
+    </details>
+  </section>
+
+  <!-- Supported Formats -->
+  <section class="formats">
+    <h2 class="section-title" data-en="Supported Formats" data-zh="支持的格式"></h2>
+    <p class="section-desc" data-en="TinyCut handles all common video formats." data-zh="TinyCut 支持所有常见视频格式。"></p>
+    <div class="formats-tags">
+      <span class="format-tag">MP4</span>
+      <span class="format-tag">MOV</span>
+      <span class="format-tag">AVI</span>
+      <span class="format-tag">MKV</span>
+      <span class="format-tag">WebM</span>
+      <span class="format-tag">FLV</span>
+      <span class="format-tag">WMV</span>
+      <span class="format-tag">M4V</span>
+      <span class="format-tag">3GP</span>
+    </div>
+  </section>
+
+  <!-- Footer -->
+  <footer class="footer">
+    <div class="footer-links">
+      <a href="https://github.com/peakchen90/tiny-cut" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.37 0 0 5.37 0 12c0 5.31 3.435 9.795 8.205 11.385.6.105.825-.255.825-.57 0-.285-.015-1.23-.015-2.235-3.015.555-3.795-.735-4.035-1.41-.135-.345-.72-1.41-1.23-1.695-.42-.225-1.02-.78-.015-.795.945-.015 1.62.87 1.845 1.23 1.08 1.815 2.805 1.305 3.495.99.105-.78.42-1.305.765-1.605-2.67-.3-5.46-1.335-5.46-5.925 0-1.305.465-2.385 1.23-3.225-.12-.3-.54-1.53.12-3.18 0 0 1.005-.315 3.3 1.23.96-.27 1.98-.405 3-.405s2.04.135 3 .405c2.295-1.56 3.3-1.23 3.3-1.23.66 1.65.24 2.88.12 3.18.765.84 1.23 1.905 1.23 3.225 0 4.605-2.805 5.625-5.475 5.925.435.375.81 1.095.81 2.22 0 1.605-.015 2.895-.015 3.3 0 .315.225.69.825.57A12.02 12.02 0 0 0 24 12c0-6.63-5.37-12-12-12z"/></svg>
+        GitHub
+      </a>
+      <a href="https://github.com/peakchen90/tiny-cut/releases" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+        <span data-en="Releases" data-zh="版本发布"></span>
+      </a>
+      <a href="https://github.com/peakchen90/tiny-cut/blob/master/LICENSE" target="_blank" rel="noopener">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+        MIT License
+      </a>
+    </div>
+    <p class="footer-copy">&copy; <span id="year"></span> TinyCut. <span data-en="Released under the MIT License." data-zh="基于 MIT 协议开源。"></span></p>
+  </footer>
+
+  <script src="main.js"></script>
+</body>
+</html>
