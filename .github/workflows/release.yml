@@ -72,7 +72,7 @@ jobs:
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           echo "Version: $VERSION"
-          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" src-tauri/tauri.conf.json
+          VERSION="$VERSION" node -e "const fs = require('fs'); const path = 'src-tauri/tauri.conf.json'; const config = JSON.parse(fs.readFileSync(path, 'utf8')); config.version = process.env.VERSION; fs.writeFileSync(path, JSON.stringify(config, null, 2) + '\n');"
 
       - name: Download FFmpeg binary
         shell: bash
