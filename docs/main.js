@@ -1,10 +1,6 @@
 (function () {
   "use strict";
 
-  var REPO = "peakchen90/tiny-cut";
-  var API_URL = "https://api.github.com/repos/" + REPO + "/releases/latest";
-  var RELEASES_URL = "https://github.com/" + REPO + "/releases/latest";
-
   // ---- Language ----
 
   function detectLang() {
@@ -63,77 +59,6 @@
     }
   }
 
-  // ---- Download links ----
-
-  var CACHE_KEY = "tinycut-release";
-  var CACHE_TTL = 5 * 60 * 1000;
-
-  function findAsset(assets, test) {
-    if (!assets) return null;
-    for (var i = 0; i < assets.length; i++) {
-      if (test(assets[i].name)) return assets[i];
-    }
-    return null;
-  }
-
-  function getCachedLinks() {
-    try {
-      var raw = localStorage.getItem(CACHE_KEY);
-      if (!raw) return null;
-      var cache = JSON.parse(raw);
-      if (Date.now() - cache.t > CACHE_TTL) return null;
-      return cache.d;
-    } catch (e) {
-      return null;
-    }
-  }
-
-  function setCache(arm, x64, win) {
-    try {
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        t: Date.now(),
-        d: { arm: arm, x64: x64, win: win }
-      }));
-    } catch (e) {}
-  }
-
-  function applyLinks(arm, x64, win) {
-    var btnArm = document.getElementById("dl-mac-arm");
-    var btnX64 = document.getElementById("dl-mac-x64");
-    var btnWin = document.getElementById("dl-win");
-    if (btnArm) btnArm.href = arm;
-    if (btnX64) btnX64.href = x64;
-    if (btnWin) btnWin.href = win;
-  }
-
-  function setDownloadLinks() {
-    var cached = getCachedLinks();
-    if (cached) {
-      applyLinks(cached.arm, cached.x64, cached.win);
-      return;
-    }
-
-    applyLinks(RELEASES_URL, RELEASES_URL, RELEASES_URL);
-
-    fetch(API_URL)
-      .then(function (res) {
-        if (!res.ok) throw new Error("API error");
-        return res.json();
-      })
-      .then(function (data) {
-        var assets = data.assets || [];
-        var arm = findAsset(assets, function (n) { return /\.dmg$/i.test(n) && /aarch64|arm64/i.test(n); });
-        var x64 = findAsset(assets, function (n) { return /\.dmg$/i.test(n) && !/aarch64|arm64/i.test(n); });
-        var win = findAsset(assets, function (n) { return /\.exe$/i.test(n); });
-
-        if (!arm || !x64 || !win) return;
-
-        applyLinks(arm.browser_download_url, x64.browser_download_url, win.browser_download_url);
-        setCache(arm.browser_download_url, x64.browser_download_url, win.browser_download_url);
-      })
-      .catch(function () {});
-  }
-
   // ---- Init ----
 
   document.addEventListener("DOMContentLoaded", function () {
@@ -141,6 +66,5 @@
     if (yearEl) yearEl.textContent = new Date().getFullYear();
 
     initLangSwitch();
-    setDownloadLinks();
   });
 })();

@@ -50,9 +50,9 @@ Download the latest version for your platform from the [Releases](https://github
 
 | Platform | Architecture | File |
 |----------|--------------|------|
-| macOS | Apple Silicon (M1/M2/M3) | `TinyCut_aarch64.dmg` |
-| macOS | Intel | `TinyCut_x64.dmg` |
-| Windows | x64 | `TinyCut_x64-setup.exe` |
+| macOS | Apple Silicon (M1/M2/M3) | `TinyCut_darwin_aarch64.dmg` |
+| macOS | Intel | `TinyCut_darwin_x64.dmg` |
+| Windows | x64 | `TinyCut_win32_x64.exe` |
 
 > **macOS Users**: If you see "app is damaged" when opening, run the following command:
 > ```
