@@ -30,6 +30,11 @@ Download the latest version for your platform from the [Releases](https://github
 | macOS | Intel | `TinyCut_x64.dmg` |
 | Windows | x64 | `TinyCut_x64-setup.exe` |
 
+> **macOS Users**: If you see "app is damaged" when opening, run the following command:
+> ```
+> xattr -cr /Applications/TinyCut.app
+> ```
+
 ## Usage
 
 1. Launch TinyCut

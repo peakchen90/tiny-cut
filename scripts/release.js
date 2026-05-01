@@ -78,6 +78,6 @@ console.log(`Creating tag: ${tag}`);
 execSync(`git tag ${tag}`, { stdio: "inherit" });
 console.log(`Tag ${tag} created.`);
 
-console.log("Pushing tags to remote...");
-execSync("git push origin --tags", { stdio: "inherit" });
-console.log("Tags pushed.");
+console.log(`Pushing tag ${tag} to remote...`);
+execSync(`git push origin ${tag}`, { stdio: "inherit" });
+console.log(`Tag ${tag} pushed.`);

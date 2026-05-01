@@ -1,6 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
+import { getCurrentWindow } from "@tauri-apps/api/window";
 import VideoPlayer from "./components/video-player";
 import Timeline from "./components/timeline";
 import ExportModal from "./components/export-modal";
@@ -56,6 +57,11 @@ export default function App() {
     if (video && !video.paused) {
       video.pause();
     }
+  }, []);
+
+  const handleWindowDrag = useCallback((event: React.MouseEvent<HTMLDivElement>) => {
+    if (event.button !== 0) return;
+    void getCurrentWindow().startDragging().catch(() => {});
   }, []);
 
   const handleMenuToggle = useCallback(() => {
@@ -162,6 +168,7 @@ export default function App() {
   if (!filePath) {
     return (
       <div className="open-screen">
+        <div className="app-titlebar" onMouseDown={handleWindowDrag} />
         <div
           className={`open-dropzone ${dragOver ? "open-dropzone-hover" : ""}`}
           onClick={handleOpenVideo}
@@ -178,6 +185,8 @@ export default function App() {
 
   return (
     <div className="editor">
+      <div className="app-titlebar" onMouseDown={handleWindowDrag} />
+
       <VideoPlayer
         key={videoKey}
         filePath={filePath}

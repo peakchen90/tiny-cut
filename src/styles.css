@@ -20,6 +20,7 @@ html, body, #root {
 
 /* ── Open Screen ── */
 .open-screen {
+  position: relative;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -60,10 +61,20 @@ html, body, #root {
 
 /* ── Editor Layout ── */
 .editor {
+  position: relative;
   display: flex;
   flex-direction: column;
   height: 100%;
   background: #000;
+}
+
+.app-titlebar {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 38px;
+  z-index: 20;
 }
 
 .editor-preview {
