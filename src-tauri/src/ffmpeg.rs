@@ -229,7 +229,7 @@ pub fn get_video_info(app: &tauri::AppHandle, input_path: &str) -> Result<VideoI
                     }
                 }
                 // Parse fps (e.g., "30 fps" or "29.97 fps")
-                if *part == "fps" && i > 0 {
+                if part.trim_end_matches(|c: char| !c.is_alphanumeric()) == "fps" && i > 0 {
                     if let Ok(f) = parts[i - 1].parse::<f64>() {
                         fps = f;
                     }
