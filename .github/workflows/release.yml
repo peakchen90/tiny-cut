@@ -67,10 +67,29 @@ jobs:
       - name: Install frontend dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Validate i18n keys
+        run: yarn validate:i18n
+
       - name: Update version from tag
         shell: bash
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
+          if [[ "${{ matrix.target }}" == *"windows"* ]]; then
+            BASE_VERSION="${VERSION%%-*}"
+            if [[ "$VERSION" == *-* ]]; then
+              PRERELEASE="${VERSION#*-}"
+              if [[ "$PRERELEASE" =~ ([0-9]+) ]]; then
+                PRERELEASE_NUMBER="${BASH_REMATCH[1]}"
+                if (( 10#$PRERELEASE_NUMBER > 65535 )); then
+                  echo "Windows MSI prerelease version must be <= 65535: $PRERELEASE_NUMBER"
+                  exit 1
+                fi
+                VERSION="${BASE_VERSION}-${PRERELEASE_NUMBER}"
+              else
+                VERSION="$BASE_VERSION"
+              fi
+            fi
+          fi
           echo "Version: $VERSION"
           VERSION="$VERSION" node -e "const fs = require('fs'); const path = 'src-tauri/tauri.conf.json'; const config = JSON.parse(fs.readFileSync(path, 'utf8')); config.version = process.env.VERSION; fs.writeFileSync(path, JSON.stringify(config, null, 2) + '\n');"
 
