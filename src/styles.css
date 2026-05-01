@@ -887,6 +887,11 @@ body::before {
   animation: toast-in 0.3s ease;
 }
 
+.toast-error {
+  color: #f87171;
+  border-color: rgba(248, 113, 113, 0.3);
+}
+
 @keyframes toast-in {
   from {
     opacity: 0;

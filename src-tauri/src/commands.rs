@@ -98,6 +98,14 @@ pub async fn trim_video(
     let final_output = get_unique_path(&output);
     let final_path = final_output.to_string_lossy().to_string();
 
+    // Create output directory if it doesn't exist
+    if let Some(parent) = final_output.parent() {
+        if !parent.exists() {
+            std::fs::create_dir_all(parent)
+                .map_err(|e| format!("Failed to create output directory: {}", e))?;
+        }
+    }
+
     let start_secs = parse_time_to_secs(&start_time)?;
     let end_secs = parse_time_to_secs(&end_time)?;
 

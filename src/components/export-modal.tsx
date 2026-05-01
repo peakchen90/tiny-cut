@@ -10,7 +10,7 @@ interface Props {
   trimRange: TrimRange;
   onClose: () => void;
   onExportStart: () => void;
-  onExportEnd: (status: ExportStatus) => void;
+  onExportEnd: (status: ExportStatus, message?: string) => void;
 }
 
 interface ResolutionOption {
@@ -254,10 +254,14 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
         isOriginal ? undefined : f.value,
         bitrate
       );
-      onExportEnd(result.success ? "success" : "error");
+      if (result.success) {
+        onExportEnd("success");
+      } else {
+        onExportEnd("error", result.message || t("exportFailed"));
+      }
     } catch (err) {
       console.error("Export error:", err);
-      onExportEnd("error");
+      onExportEnd("error", String(err));
     } finally {
       setExporting(false);
     }

@@ -22,7 +22,7 @@ export default function App() {
   const [showExportModal, setShowExportModal] = useState(false);
   const [showInfoModal, setShowInfoModal] = useState(false);
   const [exportStatus, setExportStatus] = useState<ExportStatus>("idle");
-  const [toast, setToast] = useState<string | null>(null);
+  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [videoKey, setVideoKey] = useState(0);
 
   const handleDurationChange = useCallback((dur: number) => {
@@ -113,11 +113,15 @@ export default function App() {
     setExportStatus("exporting");
   }, []);
 
-  const handleExportEnd = useCallback((status: ExportStatus) => {
+  const handleExportEnd = useCallback((status: ExportStatus, message?: string) => {
     setExportStatus(status);
     if (status === "success") {
-      setToast(t("exportSuccess"));
+      setToast({ message: t("exportSuccess"), type: "success" });
       setTimeout(() => setToast(null), 3000);
+    }
+    if (status === "error") {
+      setToast({ message: message || t("exportFailed"), type: "error" });
+      setTimeout(() => setToast(null), 5000);
     }
     if (status !== "idle") {
       setTimeout(() => setExportStatus("idle"), 3000);
@@ -456,11 +460,19 @@ export default function App() {
       )}
 
       {toast && (
-        <div className="toast">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-            <polyline points="20 6 9 17 4 12" />
-          </svg>
-          {toast}
+        <div className={`toast toast-${toast.type}`}>
+          {toast.type === "success" ? (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <polyline points="20 6 9 17 4 12" />
+            </svg>
+          ) : (
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+              <circle cx="12" cy="12" r="10" />
+              <line x1="12" y1="8" x2="12" y2="12" />
+              <line x1="12" y1="16" x2="12.01" y2="16" />
+            </svg>
+          )}
+          {toast.message}
         </div>
       )}
     </div>
