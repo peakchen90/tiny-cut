@@ -50,9 +50,9 @@ Download the latest version for your platform from the [Releases](https://github
 
 | Platform | Architecture | File |
 |----------|--------------|------|
-| macOS | Apple Silicon | `TinyCut_darwin_aarch64.dmg` |
-| macOS | Intel | `TinyCut_darwin_x64.dmg` |
-| Windows | x64 | `TinyCut_win32_x64.exe` |
+| macOS | Apple Silicon | [TinyCut_darwin_aarch64.dmg](https://github.com/peakchen90/tiny-cut/releases/latest/download/TinyCut_darwin_aarch64.dmg) |
+| macOS | Intel | [TinyCut_darwin_x64.dmg](https://github.com/peakchen90/tiny-cut/releases/latest/download/TinyCut_darwin_x64.dmg) |
+| Windows | x64 | [TinyCut_win32_x64.exe](https://github.com/peakchen90/tiny-cut/releases/latest/download/TinyCut_win32_x64.exe) |
 
 > **macOS Users**: If you see "app is damaged" when opening, run the following command:
 > ```

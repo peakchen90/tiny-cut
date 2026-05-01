@@ -50,9 +50,9 @@ TinyCut 支持以下视频格式：
 
 | 平台 | 架构 | 文件 |
 |------|------|------|
-| macOS | Apple Silicon | `TinyCut_darwin_aarch64.dmg` |
-| macOS | Intel | `TinyCut_darwin_x64.dmg` |
-| Windows | x64 | `TinyCut_win32_x64.exe` |
+| macOS | Apple Silicon | [TinyCut_darwin_aarch64.dmg](https://github.com/peakchen90/tiny-cut/releases/latest/download/TinyCut_darwin_aarch64.dmg) |
+| macOS | Intel | [TinyCut_darwin_x64.dmg](https://github.com/peakchen90/tiny-cut/releases/latest/download/TinyCut_darwin_x64.dmg) |
+| Windows | x64 | [TinyCut_win32_x64.exe](https://github.com/peakchen90/tiny-cut/releases/latest/download/TinyCut_win32_x64.exe) |
 
 > **macOS 用户**：如果打开时提示"应用已损坏"，请执行以下命令：
 > ```
