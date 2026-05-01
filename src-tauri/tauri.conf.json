@@ -42,7 +42,9 @@
     ],
     "windows": {
       "wix": {
-        "language": "en-US"
+        "language": "en-US",
+        "bannerPath": "icons/installer_banner.bmp",
+        "dialogImagePath": "icons/installer_dialog.bmp"
       }
     }
   }
