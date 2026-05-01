@@ -8,6 +8,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey?style=flat-square)]()
 
+English | **[中文](README-ZH.md)**
+
 </div>
 
 <div style="text-align: center">
@@ -22,8 +24,25 @@
 - **Precise Trim** — Frame-accurate cutting with re-encoding
 - **Drag & Drop** — Simply drag videos into the app
 - **Built-in FFmpeg** — No external dependencies required
+- **GPU Acceleration** — Hardware encoding support (VideoToolbox on macOS, NVENC on Windows)
 - **Privacy First** — All processing happens locally on your machine
 - **Cross Platform** — Works on macOS (Intel & Apple Silicon) and Windows
+
+## Supported Formats
+
+TinyCut supports the following video formats:
+
+| Format | Extension |
+|--------|-----------|
+| MP4 | `.mp4` |
+| MOV | `.mov` |
+| AVI | `.avi` |
+| MKV | `.mkv` |
+| WebM | `.webm` |
+| FLV | `.flv` |
+| WMV | `.wmv` |
+| M4V | `.m4v` |
+| 3GP | `.3gp` |
 
 ## Download
 
@@ -43,7 +62,7 @@ Download the latest version for your platform from the [Releases](https://github
 ## Usage
 
 1. Launch TinyCut
-2. Drag a video file (`.mp4` or `.mov`) onto the window, or click to select
+2. Drag a video file onto the window, or click to select
 3. Use the timeline to set start and end points
 4. Click the menu (⋮) and select **Export**
 5. Choose save location and wait for processing
@@ -53,6 +72,24 @@ Download the latest version for your platform from the [Releases](https://github
 | Key | Action |
 |-----|--------|
 | `Space` | Play / Pause |
+| `←` | Seek backward 0.2s |
+| `→` | Seek forward 0.2s |
+| `Shift + ←` | Seek backward 2s |
+| `Shift + →` | Seek forward 2s |
+| `⌘/Ctrl + N` | New project |
+| `⌘/Ctrl + I` | Video info |
+| `⌘/Ctrl + E` | Export |
+| `Esc` | Close dialog |
+
+### Video Info
+
+Click **More (⋮) → Info** to view detailed video information:
+
+- File name and size
+- Resolution and frame rate
+- Video codec and color space
+- Bitrate and duration
+- Audio codec, sample rate, channels, and bitrate
 
 ## Development
 
@@ -92,6 +129,7 @@ The built application will be in `src-tauri/target/release/bundle/`.
 | Frontend | React, TypeScript, Vite |
 | Backend | Rust, Tauri v2 |
 | Video Processing | FFmpeg (bundled) |
+| GPU Acceleration | VideoToolbox (macOS), NVENC (Windows) |
 
 ## Project Structure
 
