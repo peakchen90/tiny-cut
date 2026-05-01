@@ -36,19 +36,19 @@ fn menu_labels(lang: &str) -> MenuLabels {
         file: messages
             .get("file")
             .cloned()
-            .unwrap_or_else(|| "File".to_string()),
+            .expect("missing i18n key: file"),
         new_project: messages
             .get("newProject")
             .cloned()
-            .unwrap_or_else(|| "New".to_string()),
+            .expect("missing i18n key: newProject"),
         info: messages
             .get("info")
             .cloned()
-            .unwrap_or_else(|| "Info".to_string()),
+            .expect("missing i18n key: info"),
         export_video: messages
             .get("exportVideo")
             .cloned()
-            .unwrap_or_else(|| "Export".to_string()),
+            .expect("missing i18n key: exportVideo"),
     }
 }
 
