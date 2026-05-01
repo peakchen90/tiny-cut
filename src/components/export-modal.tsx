@@ -30,7 +30,7 @@ const FORMAT_OPTIONS = [
 ];
 
 function getResolutionOptions(origW: number, origH: number): ResolutionOption[] {
-  const options: ResolutionOption[] = [{ label: t("original"), width: origW, height: origH }];
+  const options: ResolutionOption[] = [{ label: `${t("original")} (${origW}×${origH})`, width: origW, height: origH }];
   const presets = [
     { label: "4K", w: 3840, h: 2160 },
     { label: "1440p", w: 2560, h: 1440 },
@@ -49,7 +49,7 @@ function getResolutionOptions(origW: number, origH: number): ResolutionOption[] 
 }
 
 function getFpsOptions(origFps: number): FpsOption[] {
-  const options: FpsOption[] = [{ label: t("original"), value: origFps }];
+  const options: FpsOption[] = [{ label: `${t("original")} (${origFps} fps)`, value: origFps }];
   const presets = [60, 30, 25, 24];
   for (const f of presets) {
     if (f < origFps) {
