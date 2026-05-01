@@ -903,27 +903,25 @@ body::before {
   }
 }
 
-/* Windows scrollbar styles */
-@media screen and (min-width: 0\0) {
-  ::-webkit-scrollbar {
-    width: 8px;
-    height: 8px;
-  }
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 8px;
+  height: 8px;
+}
 
-  ::-webkit-scrollbar-track {
-    background: transparent;
-  }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-  ::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-  }
+::-webkit-scrollbar-thumb {
+  background: #333;
+  border-radius: 4px;
+}
 
-  ::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
-  }
+::-webkit-scrollbar-thumb:hover {
+  background: #3a3a3a;
+}
 
-  ::-webkit-scrollbar-corner {
-    background: transparent;
-  }
+::-webkit-scrollbar-corner {
+  background: transparent;
 }

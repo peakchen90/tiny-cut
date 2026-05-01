@@ -67,6 +67,13 @@ jobs:
       - name: Install frontend dependencies
         run: yarn install --frozen-lockfile
 
+      - name: Update version from tag
+        shell: bash
+        run: |
+          VERSION="${GITHUB_REF_NAME#v}"
+          echo "Version: $VERSION"
+          sed -i "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" src-tauri/tauri.conf.json
+
       - name: Download FFmpeg binary
         shell: bash
         run: |
