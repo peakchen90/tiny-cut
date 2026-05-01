@@ -1,0 +1,58 @@
+{
+  "app": {
+    "appTitle": "TinyCut",
+    "openVideo": "動画を開く",
+    "noVideo": "動画が読み込まれていません",
+    "loadVideo": "動画を読み込んでトリム範囲を設定します",
+    "selectVideo": "開始する動画ファイルを選択",
+    "dropVideo": "動画を選択またはドロップ",
+    "more": "その他"
+  },
+  "editor": {
+    "start": "開始",
+    "end": "終了",
+    "duration": "長さ",
+    "trimDuration": "トリム時間"
+  },
+  "export": {
+    "fastTrim": "高速トリム",
+    "fastTrimDesc": "再エンコードなしで高速、時間位置にわずかなずれがあります",
+    "preciseTrim": "精密トリム",
+    "preciseTrimDesc": "再エンコードありで正確、低速",
+    "export": "書き出し",
+    "exporting": "書き出し中...",
+    "exportSuccess": "書き出しが完了しました",
+    "exportFailed": "書き出しに失敗しました",
+    "exportSettings": "書き出し設定",
+    "exportPath": "書き出し先",
+    "select": "選択",
+    "estimatedSize": "推定サイズ",
+    "original": "オリジナル"
+  },
+  "menu": {
+    "file": "ファイル",
+    "newProject": "新規",
+    "info": "情報",
+    "exportVideo": "書き出し",
+    "help": "ヘルプ",
+    "githubInfo": "GitHub 情報",
+    "toggleDevTools": "開発者ツールを切り替え"
+  },
+  "video": {
+    "videoInfo": "動画情報",
+    "resolution": "解像度",
+    "fps": "FPS",
+    "format": "形式",
+    "bitrate": "ビットレート",
+    "loadingVideoInfo": "動画情報を読み込み中...",
+    "fileName": "ファイル名",
+    "fileSize": "ファイルサイズ",
+    "duration": "長さ",
+    "videoCodec": "動画コーデック",
+    "colorSpace": "色空間",
+    "audioCodec": "音声コーデック",
+    "audioSampleRate": "音声サンプルレート",
+    "audioChannels": "音声チャンネル",
+    "audioBitrate": "音声ビットレート"
+  }
+}

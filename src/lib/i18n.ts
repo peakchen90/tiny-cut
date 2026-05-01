@@ -1,7 +1,13 @@
 import en from "../../i18n/en.json";
+import de from "../../i18n/de.json";
+import es from "../../i18n/es.json";
+import fr from "../../i18n/fr.json";
+import ja from "../../i18n/ja.json";
+import ko from "../../i18n/ko.json";
 import zh from "../../i18n/zh.json";
+import zhHant from "../../i18n/zh-Hant.json";
 
-const messages = { en, zh } as const;
+const messages = { de, en, es, fr, ja, ko, zh, "zh-Hant": zhHant } as const;
 
 type Lang = keyof typeof messages;
 type MessageGroup = keyof (typeof messages)["en"];
@@ -11,7 +17,17 @@ export type MessageKey = {
 
 function detectLang(): Lang {
   const lang = navigator.language.toLowerCase();
-  if (lang.startsWith("zh")) return "zh";
+  if (lang.startsWith("zh")) {
+    if (lang.includes("hant") || lang.includes("tw") || lang.includes("hk") || lang.includes("mo")) {
+      return "zh-Hant";
+    }
+    return "zh";
+  }
+  if (lang.startsWith("de")) return "de";
+  if (lang.startsWith("es")) return "es";
+  if (lang.startsWith("fr")) return "fr";
+  if (lang.startsWith("ja")) return "ja";
+  if (lang.startsWith("ko")) return "ko";
   return "en";
 }
 

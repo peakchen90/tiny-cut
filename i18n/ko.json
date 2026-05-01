@@ -1,0 +1,58 @@
+{
+  "app": {
+    "appTitle": "TinyCut",
+    "openVideo": "비디오 열기",
+    "noVideo": "로드된 비디오 없음",
+    "loadVideo": "비디오를 불러와 트림 범위를 설정하세요",
+    "selectVideo": "시작할 비디오 파일을 선택하세요",
+    "dropVideo": "비디오를 선택하거나 끌어다 놓기",
+    "more": "더보기"
+  },
+  "editor": {
+    "start": "시작",
+    "end": "끝",
+    "duration": "길이",
+    "trimDuration": "트림 길이"
+  },
+  "export": {
+    "fastTrim": "빠른 트림",
+    "fastTrimDesc": "재인코딩 없음, 더 빠름, 시간 위치가 약간 어긋날 수 있음",
+    "preciseTrim": "정밀 트림",
+    "preciseTrimDesc": "재인코딩, 정확함, 더 느림",
+    "export": "내보내기",
+    "exporting": "내보내는 중...",
+    "exportSuccess": "내보내기 완료",
+    "exportFailed": "내보내기 실패",
+    "exportSettings": "내보내기 설정",
+    "exportPath": "내보내기 경로",
+    "select": "선택",
+    "estimatedSize": "예상 크기",
+    "original": "원본"
+  },
+  "menu": {
+    "file": "파일",
+    "newProject": "새로 만들기",
+    "info": "정보",
+    "exportVideo": "내보내기",
+    "help": "도움말",
+    "githubInfo": "GitHub 정보",
+    "toggleDevTools": "개발자 도구 전환"
+  },
+  "video": {
+    "videoInfo": "비디오 정보",
+    "resolution": "해상도",
+    "fps": "FPS",
+    "format": "형식",
+    "bitrate": "비트레이트",
+    "loadingVideoInfo": "비디오 정보 불러오는 중...",
+    "fileName": "파일 이름",
+    "fileSize": "파일 크기",
+    "duration": "길이",
+    "videoCodec": "비디오 코덱",
+    "colorSpace": "색 공간",
+    "audioCodec": "오디오 코덱",
+    "audioSampleRate": "오디오 샘플레이트",
+    "audioChannels": "오디오 채널",
+    "audioBitrate": "오디오 비트레이트"
+  }
+}

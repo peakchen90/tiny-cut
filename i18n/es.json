@@ -1,0 +1,58 @@
+{
+  "app": {
+    "appTitle": "TinyCut",
+    "openVideo": "Abrir video",
+    "noVideo": "No hay video cargado",
+    "loadVideo": "Carga un video para definir el rango de corte",
+    "selectVideo": "Selecciona un archivo de video para empezar",
+    "dropVideo": "Selecciona o arrastra un video",
+    "more": "Más"
+  },
+  "editor": {
+    "start": "Inicio",
+    "end": "Fin",
+    "duration": "Duración",
+    "trimDuration": "Duración del corte"
+  },
+  "export": {
+    "fastTrim": "Corte rápido",
+    "fastTrimDesc": "Sin recodificar, más rápido, con ligero desfase",
+    "preciseTrim": "Corte preciso",
+    "preciseTrimDesc": "Recodifica, preciso, más lento",
+    "export": "Exportar",
+    "exporting": "Exportando...",
+    "exportSuccess": "Exportación completada",
+    "exportFailed": "Error al exportar",
+    "exportSettings": "Ajustes de exportación",
+    "exportPath": "Ruta de exportación",
+    "select": "Seleccionar",
+    "estimatedSize": "Tamaño estimado",
+    "original": "Original"
+  },
+  "menu": {
+    "file": "Archivo",
+    "newProject": "Nuevo",
+    "info": "Información",
+    "exportVideo": "Exportar",
+    "help": "Ayuda",
+    "githubInfo": "Información de GitHub",
+    "toggleDevTools": "Alternar herramientas de desarrollo"
+  },
+  "video": {
+    "videoInfo": "Información del video",
+    "resolution": "Resolución",
+    "fps": "FPS",
+    "format": "Formato",
+    "bitrate": "Tasa de bits",
+    "loadingVideoInfo": "Cargando información del video...",
+    "fileName": "Nombre del archivo",
+    "fileSize": "Tamaño del archivo",
+    "duration": "Duración",
+    "videoCodec": "Códec de video",
+    "colorSpace": "Espacio de color",
+    "audioCodec": "Códec de audio",
+    "audioSampleRate": "Frecuencia de muestreo de audio",
+    "audioChannels": "Canales de audio",
+    "audioBitrate": "Tasa de bits de audio"
+  }
+}

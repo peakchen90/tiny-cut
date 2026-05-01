@@ -1,0 +1,58 @@
+{
+  "app": {
+    "appTitle": "TinyCut",
+    "openVideo": "開啟影片",
+    "noVideo": "尚未載入影片",
+    "loadVideo": "載入影片後設定裁剪範圍",
+    "selectVideo": "選擇一個影片檔開始",
+    "dropVideo": "選擇或拖入影片",
+    "more": "更多"
+  },
+  "editor": {
+    "start": "開始",
+    "end": "結束",
+    "duration": "時長",
+    "trimDuration": "裁剪時長"
+  },
+  "export": {
+    "fastTrim": "快速裁剪",
+    "fastTrimDesc": "不重新編碼，速度較快，時間點略有偏差",
+    "preciseTrim": "精準裁剪",
+    "preciseTrimDesc": "重新編碼，時間精準，速度較慢",
+    "export": "匯出",
+    "exporting": "匯出中...",
+    "exportSuccess": "匯出完成",
+    "exportFailed": "匯出失敗",
+    "exportSettings": "匯出設定",
+    "exportPath": "匯出位置",
+    "select": "選擇",
+    "estimatedSize": "預估大小",
+    "original": "原始"
+  },
+  "menu": {
+    "file": "檔案",
+    "newProject": "新增",
+    "info": "資訊",
+    "exportVideo": "匯出",
+    "help": "說明",
+    "githubInfo": "GitHub 資訊",
+    "toggleDevTools": "切換開發者工具"
+  },
+  "video": {
+    "videoInfo": "原影片資訊",
+    "resolution": "解析度",
+    "fps": "影格率",
+    "format": "格式",
+    "bitrate": "位元率",
+    "loadingVideoInfo": "讀取影片資訊...",
+    "fileName": "檔案名稱",
+    "fileSize": "檔案大小",
+    "duration": "時長",
+    "videoCodec": "影片編碼",
+    "colorSpace": "色彩空間",
+    "audioCodec": "音訊編碼",
+    "audioSampleRate": "音訊取樣率",
+    "audioChannels": "音訊聲道",
+    "audioBitrate": "音訊位元率"
+  }
+}

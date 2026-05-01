@@ -28,11 +28,7 @@ struct MenuLabels {
 }
 
 fn menu_labels(lang: &str) -> MenuLabels {
-    let raw = if lang.to_lowercase().starts_with("zh") {
-        include_str!("../../i18n/zh.json")
-    } else {
-        include_str!("../../i18n/en.json")
-    };
+    let raw = i18n_json(lang);
     let messages: serde_json::Value = serde_json::from_str(raw).unwrap_or_default();
 
     MenuLabels {
@@ -44,6 +40,36 @@ fn menu_labels(lang: &str) -> MenuLabels {
         github_info: menu_label(&messages, "githubInfo"),
         toggle_devtools: menu_label(&messages, "toggleDevTools"),
     }
+}
+
+fn i18n_json(lang: &str) -> &'static str {
+    let lang = lang.to_lowercase().replace('_', "-");
+    if lang.starts_with("zh") {
+        if lang.contains("hant")
+            || lang.contains("tw")
+            || lang.contains("hk")
+            || lang.contains("mo")
+        {
+            return include_str!("../../i18n/zh-Hant.json");
+        }
+        return include_str!("../../i18n/zh.json");
+    }
+    if lang.starts_with("de") {
+        return include_str!("../../i18n/de.json");
+    }
+    if lang.starts_with("es") {
+        return include_str!("../../i18n/es.json");
+    }
+    if lang.starts_with("fr") {
+        return include_str!("../../i18n/fr.json");
+    }
+    if lang.starts_with("ja") {
+        return include_str!("../../i18n/ja.json");
+    }
+    if lang.starts_with("ko") {
+        return include_str!("../../i18n/ko.json");
+    }
+    include_str!("../../i18n/en.json")
 }
 
 fn menu_label(messages: &serde_json::Value, key: &str) -> String {
