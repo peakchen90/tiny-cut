@@ -1,6 +1,6 @@
 # TinyCut
 
-<div align="center">
+<div style="text-align: center">
 
 **A lightweight, open-source, cross-platform video trimming application**
 
@@ -8,6 +8,11 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg?style=flat-square)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-macOS%20%7C%20Windows-lightgrey?style=flat-square)]()
 
+</div>
+
+<div style="text-align: center">
+  <img src="./docs/screenshot01.png" alt="Screenshot01" style="width: 45%; min-width: 400px;">
+  <img src="./docs/screenshot02.png" alt="Screenshot02" style="width: 45%; min-width: 400px;">
 </div>
 
 ## Features

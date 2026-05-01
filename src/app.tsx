@@ -228,7 +228,6 @@ export default function App() {
   const [dragOver, setDragOver] = useState(false);
 
   useEffect(() => {
-    if (filePath) return;
     const unlisten = getCurrentWebview().onDragDropEvent((event) => {
       if (event.payload.type === "over") {
         setDragOver(true);
@@ -238,7 +237,7 @@ export default function App() {
         if (paths.length > 0) {
           const path = paths[0];
           const ext = path.split(".").pop()?.toLowerCase();
-          if (ext === "mp4" || ext === "mov") {
+          if (["mp4", "mov", "avi", "mkv", "webm", "flv", "wmv", "m4v", "3gp"].includes(ext!)) {
             loadFile(path);
           }
         }
@@ -247,12 +246,12 @@ export default function App() {
       }
     });
     return () => { unlisten.then(fn => fn()); };
-  }, [filePath]);
+  }, []);
 
   async function handleOpenVideo() {
     const selected = await open({
       multiple: false,
-      filters: [{ name: "Video", extensions: ["mp4", "mov"] }],
+      filters: [{ name: "Video", extensions: ["mp4", "mov", "avi", "mkv", "webm", "flv", "wmv", "m4v", "3gp"] }],
     });
     if (selected) {
       loadFile(selected as string);
@@ -269,13 +268,16 @@ export default function App() {
   }
 
   const trimDuration = trimRange.endTime - trimRange.startTime;
+  const fileName = filePath ? filePath.split('/').pop() : '';
   const titlebar = (
-    <div className={`app-titlebar ${isMac ? "app-titlebar-macos" : ""}`}>
+    <div className={`app-titlebar ${isMac ? "app-titlebar-macos" : "app-titlebar-windows"}`}>
       <div
         className="app-titlebar-drag"
         data-tauri-drag-region
         onMouseDown={handleWindowDrag}
-      />
+      >
+        {fileName && <span className="app-titlebar-filename">{fileName}</span>}
+      </div>
       {!isMac && (
         <div className="window-controls">
           <button
