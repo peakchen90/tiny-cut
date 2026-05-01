@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { getVideoInfo, trimVideo, checkFileExists } from "../lib/tauri";
 import { t } from "../lib/i18n";
+import { getFileNameWithoutExtension } from "../lib/path";
 import type { VideoInfo, ExportStatus, TrimRange } from "../types/trim";
 
 interface Props {
@@ -83,11 +84,15 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
 
   useEffect(() => {
     const fmt = FORMAT_OPTIONS[formatIdx];
-    const defaultName = filePath.split('/').pop()?.replace(/\.[^/.]+$/, '') || 'video';
-    const dir = filePath.substring(0, filePath.lastIndexOf('/'));
+    const defaultName = getFileNameWithoutExtension(filePath);
+    // Get directory path, handle both Windows and macOS paths
+    const dirMatch = filePath.match(/^(.*?)[/\\][^/\\]+$/);
+    const dir = dirMatch ? dirMatch[1] : '';
     const now = new Date();
     const ts = `${now.getFullYear().toString().slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
-    setOutputPath(`${dir}/${defaultName}_${ts}.${fmt.ext}`);
+    // Use the same path separator as the original path
+    const separator = filePath.includes('\\') ? '\\' : '/';
+    setOutputPath(`${dir}${separator}${defaultName}_${ts}.${fmt.ext}`);
   }, [filePath, formatIdx]);
 
   // Check for duplicate filename and add (n) suffix
@@ -122,7 +127,7 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
 
   const handleSelectPath = async () => {
     const fmt = FORMAT_OPTIONS[formatIdx];
-    const defaultName = filePath.split('/').pop()?.replace(/\.[^/.]+$/, '') || 'video';
+    const defaultName = getFileNameWithoutExtension(filePath);
     const selected = await save({
       filters: [{ name: "Video", extensions: [fmt.ext] }],
       defaultPath: outputPath || `${defaultName}_trimmed.${fmt.ext}`,

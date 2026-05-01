@@ -8,6 +8,7 @@ import ExportModal from "./components/export-modal";
 import { InfoModal } from "./components/info-modal";
 import { formatTimeShort } from "./lib/time";
 import { t } from "./lib/i18n";
+import { getFileName } from "./lib/path";
 import type { TrimRange, ExportStatus } from "./types/trim";
 
 export default function App() {
@@ -268,7 +269,7 @@ export default function App() {
   }
 
   const trimDuration = trimRange.endTime - trimRange.startTime;
-  const fileName = filePath ? filePath.split('/').pop() : '';
+  const fileName = getFileName(filePath);
   const titlebar = (
     <div className={`app-titlebar ${isMac ? "app-titlebar-macos" : "app-titlebar-windows"}`}>
       <div

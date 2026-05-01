@@ -74,6 +74,7 @@ jobs:
           curl -fL --http1.1 --retry 3 -o "src-tauri/binaries/${{ matrix.ffmpeg_bin }}" "${{ matrix.ffmpeg_url }}"
           test -s "src-tauri/binaries/${{ matrix.ffmpeg_bin }}"
           chmod +x "src-tauri/binaries/${{ matrix.ffmpeg_bin }}"
+          test -x "src-tauri/binaries/${{ matrix.ffmpeg_bin }}"
 
       - name: Build the app
         uses: tauri-apps/tauri-action@v0
@@ -82,6 +83,24 @@ jobs:
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: "--target ${{ matrix.target }}"
+
+      - name: Verify bundled FFmpeg
+        shell: bash
+        run: |
+          if [[ "${{ matrix.target }}" == *apple-darwin ]]; then
+            bundled_ffmpeg="$(find src-tauri/target -type f \( -path "*/TinyCut.app/Contents/MacOS/ffmpeg" -o -path "*/TinyCut.app/Contents/Resources/ffmpeg" \) -print -quit)"
+          else
+            bundled_ffmpeg="$(find src-tauri/target -type f -name "ffmpeg.exe" -print -quit)"
+          fi
+
+          if [ -z "$bundled_ffmpeg" ]; then
+            echo "Bundled FFmpeg not found"
+            find src-tauri/target -type f \( -name "ffmpeg" -o -name "ffmpeg.exe" -o -name "ffmpeg-*" \) -print
+            exit 1
+          fi
+
+          test -x "$bundled_ffmpeg"
+          echo "Bundled FFmpeg: $bundled_ffmpeg"
 
   publish-release:
     needs: [create-release, build]

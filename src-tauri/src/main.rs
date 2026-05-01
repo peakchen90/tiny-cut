@@ -87,6 +87,11 @@ fn main() {
                     window.set_title_bar_style(tauri::TitleBarStyle::Overlay)?;
                 }
 
+                #[cfg(target_os = "windows")]
+                {
+                    window.set_decorations(false)?;
+                }
+
                 window.set_background_color(Some(Color(0, 0, 0, 255)))?;
             }
             Ok(())

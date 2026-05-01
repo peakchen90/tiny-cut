@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { getVideoInfo } from "../lib/tauri";
 import { formatTimeShort } from "../lib/time";
 import { t } from "../lib/i18n";
+import { getFileName } from "../lib/path";
 import type { VideoInfo } from "../types/trim";
 
 interface Props {
@@ -68,7 +69,7 @@ export function InfoModal({ filePath, onClose }: Props) {
             <div className="info-table">
               <div className="info-row">
                 <span className="info-label">{t("fileName")}</span>
-                <span className="info-value">{videoInfo.file_path.split('/').pop()}</span>
+                <span className="info-value">{getFileName(videoInfo.file_path)}</span>
               </div>
               <div className="info-row">
                 <span className="info-label">{t("fileSize")}</span>

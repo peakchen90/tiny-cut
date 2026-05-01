@@ -1,6 +1,26 @@
 use serde::Serialize;
+use std::path::PathBuf;
 use std::process::Command;
 use tauri::Manager;
+
+#[cfg(target_os = "windows")]
+use std::os::windows::process::CommandExt;
+
+#[cfg(target_os = "windows")]
+const CREATE_NO_WINDOW: u32 = 0x08000000;
+
+fn create_command(program: &str) -> Command {
+    #[cfg(target_os = "windows")]
+    {
+        let mut cmd = Command::new(program);
+        cmd.creation_flags(CREATE_NO_WINDOW);
+        cmd
+    }
+    #[cfg(not(target_os = "windows"))]
+    {
+        Command::new(program)
+    }
+}
 
 #[derive(Serialize)]
 pub struct FfmpegResult {
@@ -26,7 +46,7 @@ pub struct VideoInfo {
     pub audio_bitrate: u64,
 }
 
-fn ffmpeg_path(app: &tauri::AppHandle) -> String {
+fn ffmpeg_path(app: &tauri::AppHandle) -> Result<String, String> {
     let sidecar_name = if cfg!(target_os = "windows") {
         "ffmpeg.exe"
     } else {
@@ -40,24 +60,47 @@ fn ffmpeg_path(app: &tauri::AppHandle) -> String {
         "ffmpeg-x86_64-apple-darwin"
     };
 
-    // Production sidecars are bundled without the target triple suffix.
-    if let Ok(resource) = app.path().resource_dir() {
-        let prod_path = resource.join(sidecar_name);
-        if prod_path.exists() {
-            return prod_path.to_string_lossy().to_string();
-        }
+    let mut candidates: Vec<PathBuf> = Vec::new();
 
-        let prod_path = resource.join("binaries").join(bin_name);
-        if prod_path.exists() {
-            return prod_path.to_string_lossy().to_string();
+    // Tauri sidecars are bundled without the target triple suffix.
+    if let Ok(resource) = app.path().resource_dir() {
+        candidates.push(resource.join(sidecar_name));
+        candidates.push(resource.join("binaries").join(bin_name));
+
+        if let Some(contents_dir) = resource.parent() {
+            candidates.push(contents_dir.join("MacOS").join(sidecar_name));
+            candidates.push(contents_dir.join("MacOS").join(bin_name));
         }
     }
 
-    // Development: resolve from Cargo manifest dir (src-tauri)
-    let dev_path = std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("binaries")
-        .join(bin_name);
-    dev_path.to_string_lossy().to_string()
+    if let Ok(exe) = std::env::current_exe() {
+        if let Some(exe_dir) = exe.parent() {
+            candidates.push(exe_dir.join(sidecar_name));
+            candidates.push(exe_dir.join(bin_name));
+            candidates.push(exe_dir.join("binaries").join(bin_name));
+        }
+    }
+
+    candidates.push(
+        std::path::Path::new(env!("CARGO_MANIFEST_DIR"))
+            .join("binaries")
+            .join(bin_name),
+    );
+
+    for candidate in &candidates {
+        if candidate.is_file() {
+            return Ok(candidate.to_string_lossy().to_string());
+        }
+    }
+
+    Err(format!(
+        "FFmpeg binary not found. Checked: {}",
+        candidates
+            .iter()
+            .map(|path| path.to_string_lossy())
+            .collect::<Vec<_>>()
+            .join(", ")
+    ))
 }
 
 fn detect_hw_encoder(ffmpeg: &str) -> &'static str {
@@ -70,13 +113,18 @@ fn detect_hw_encoder(ffmpeg: &str) -> &'static str {
     };
 
     // Test if encoder is available
-    let output = Command::new(ffmpeg)
+    let output = create_command(ffmpeg)
         .args([
             "-hide_banner",
-            "-f", "lavfi",
-            "-i", "nullsrc=s=320x240:d=0.1",
-            "-c:v", encoder,
-            "-f", "null", "-",
+            "-f",
+            "lavfi",
+            "-i",
+            "nullsrc=s=320x240:d=0.1",
+            "-c:v",
+            encoder,
+            "-f",
+            "null",
+            "-",
         ])
         .output();
 
@@ -86,23 +134,24 @@ fn detect_hw_encoder(ffmpeg: &str) -> &'static str {
             encoder
         }
         _ => {
-            println!("Hardware encoder {} not available, falling back to libx264", encoder);
+            println!(
+                "Hardware encoder {} not available, falling back to libx264",
+                encoder
+            );
             "libx264"
         }
     }
 }
 
 pub fn get_video_info(app: &tauri::AppHandle, input_path: &str) -> Result<VideoInfo, String> {
-    let ffmpeg = ffmpeg_path(app);
+    let ffmpeg = ffmpeg_path(app)?;
     println!("get_video_info: ffmpeg path = {}", ffmpeg);
     println!("get_video_info: input_path = {}", input_path);
 
     // Get file size
-    let file_size = std::fs::metadata(input_path)
-        .map(|m| m.len())
-        .unwrap_or(0);
+    let file_size = std::fs::metadata(input_path).map(|m| m.len()).unwrap_or(0);
 
-    let output = Command::new(&ffmpeg)
+    let output = create_command(&ffmpeg)
         .args(["-i", input_path])
         .output()
         .map_err(|e| format!("Failed to execute ffmpeg: {}", e))?;
@@ -216,8 +265,8 @@ pub fn get_video_info(app: &tauri::AppHandle, input_path: &str) -> Result<VideoI
                         audio_channels = 2;
                     } else if *part == "mono" {
                         audio_channels = 1;
-                    } else if part.ends_with(".1") {
-                        if let Ok(ch) = part[..part.len() - 2].parse::<u32>() {
+                    } else if let Some(channel_count) = part.strip_suffix(".1") {
+                        if let Ok(ch) = channel_count.parse::<u32>() {
                             audio_channels = ch + 1;
                         }
                     }
@@ -326,14 +375,14 @@ pub fn trim_fast(
     start_secs: f64,
     duration: f64,
 ) -> Result<FfmpegResult, String> {
-    let ffmpeg = ffmpeg_path(app);
+    let ffmpeg = ffmpeg_path(app)?;
     println!("FFmpeg path: {}", ffmpeg);
     println!(
         "FFmpeg args: -y -ss {} -i {} -t {} -c copy -avoid_negative_ts 1 {}",
         start_secs, input_path, duration, output_path
     );
 
-    let output = Command::new(&ffmpeg)
+    let output = create_command(&ffmpeg)
         .args([
             "-y",
             "-ss",
@@ -381,7 +430,7 @@ pub fn trim_precise(
     fps: Option<f64>,
     bitrate: Option<u64>,
 ) -> Result<FfmpegResult, String> {
-    let ffmpeg = ffmpeg_path(app);
+    let ffmpeg = ffmpeg_path(app)?;
     let encoder = detect_hw_encoder(&ffmpeg);
     let mut args = vec![
         "-y".to_string(),
@@ -433,7 +482,7 @@ pub fn trim_precise(
         output_path.to_string(),
     ]);
 
-    let output = Command::new(&ffmpeg)
+    let output = create_command(&ffmpeg)
         .args(&args)
         .output()
         .map_err(|e| format!("Failed to execute ffmpeg: {}", e))?;
