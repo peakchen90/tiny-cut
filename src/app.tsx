@@ -123,16 +123,92 @@ export default function App() {
     }
   }, []);
 
+  const isMac = navigator.platform.toLowerCase().includes("mac");
+
+  const renderShortcut = (text: string) => (
+    <span className="more-menu-item-shortcut">
+      {text.split('').map((char, i) => (
+        <span key={i} className="shortcut-key">{char}</span>
+      ))}
+    </span>
+  );
+
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      // Check if user is typing in an input
+      const target = e.target as HTMLElement;
+      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
+
+      const isMod = isMac ? e.metaKey : e.ctrlKey;
+
+      // ESC: Close modals
+      if (e.key === 'Escape') {
+        if (showExportModal && exportStatus !== "exporting") {
+          setShowExportModal(false);
+          return;
+        }
+        if (showInfoModal) {
+          setShowInfoModal(false);
+          return;
+        }
+        if (showMenu) {
+          setShowMenu(false);
+          return;
+        }
+      }
+
+      // Command/Ctrl + N: New project
+      if (isMod && e.key === 'n') {
+        e.preventDefault();
+        handleNewProject();
+        return;
+      }
+
+      // Command/Ctrl + I: Info
+      if (isMod && e.key === 'i') {
+        e.preventDefault();
+        if (filePath) {
+          setShowInfoModal(true);
+          setShowMenu(false);
+        }
+        return;
+      }
+
+      // Command/Ctrl + E: Export
+      if (isMod && e.key === 'e') {
+        e.preventDefault();
+        if (filePath) {
+          handleExportClick();
+        }
+        return;
+      }
+
+      // Space: Toggle play
       if (e.code === "Space" && filePath) {
         e.preventDefault();
         togglePlay();
+        return;
+      }
+
+      // Left/Right arrow: Seek
+      if (e.code === "ArrowLeft" || e.code === "ArrowRight") {
+        e.preventDefault();
+        const video = videoRef.current;
+        if (!video || !filePath) return;
+
+        const step = e.shiftKey ? 2 : 0.2;
+        const direction = e.code === "ArrowLeft" ? -1 : 1;
+        const newTime = Math.max(trimRange.startTime, Math.min(trimRange.endTime, currentTime + direction * step));
+
+        if (!video.paused) video.pause();
+        video.currentTime = newTime;
+        setCurrentTime(newTime);
       }
     };
+
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [filePath, togglePlay]);
+  }, [filePath, togglePlay, isMac, handleNewProject, handleExportClick, currentTime, trimRange, showExportModal, showInfoModal, showMenu, exportStatus]);
 
   useEffect(() => {
     if (!showMenu) return;
@@ -190,7 +266,6 @@ export default function App() {
   }
 
   const trimDuration = trimRange.endTime - trimRange.startTime;
-  const isMac = navigator.platform.toLowerCase().includes("mac");
   const titlebar = (
     <div className={`app-titlebar ${isMac ? "app-titlebar-macos" : ""}`}>
       <div
@@ -320,27 +395,36 @@ export default function App() {
             {showMenu && (
               <div className="more-menu">
                 <button className="more-menu-item" onClick={handleNewProject}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <line x1="12" y1="5" x2="12" y2="19" />
-                    <line x1="5" y1="12" x2="19" y2="12" />
-                  </svg>
-                  {t("newProject")}
+                  <div className="more-menu-item-left">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <line x1="12" y1="5" x2="12" y2="19" />
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                    </svg>
+                    <span>{t("newProject")}</span>
+                  </div>
+                  {renderShortcut(isMac ? '⌘+N' : 'Ctrl+N')}
                 </button>
                 <button className="more-menu-item" onClick={() => { setShowInfoModal(true); setShowMenu(false); }}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <circle cx="12" cy="12" r="10" />
-                    <line x1="12" y1="16" x2="12" y2="12" />
-                    <line x1="12" y1="8" x2="12.01" y2="8" />
-                  </svg>
-                  {t("info")}
+                  <div className="more-menu-item-left">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <circle cx="12" cy="12" r="10" />
+                      <line x1="12" y1="16" x2="12" y2="12" />
+                      <line x1="12" y1="8" x2="12.01" y2="8" />
+                    </svg>
+                    <span>{t("info")}</span>
+                  </div>
+                  {renderShortcut(isMac ? '⌘+I' : 'Ctrl+I')}
                 </button>
                 <button className="more-menu-item" onClick={handleExportClick} disabled={exportStatus === "exporting"}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                    <polyline points="7 10 12 15 17 10" />
-                    <line x1="12" y1="15" x2="12" y2="3" />
-                  </svg>
-                  {exportStatus === "exporting" ? t("exporting") : t("exportVideo")}
+                  <div className="more-menu-item-left">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                      <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                      <polyline points="7 10 12 15 17 10" />
+                      <line x1="12" y1="15" x2="12" y2="3" />
+                    </svg>
+                    <span>{exportStatus === "exporting" ? t("exporting") : t("exportVideo")}</span>
+                  </div>
+                  {renderShortcut(isMac ? '⌘+E' : 'Ctrl+E')}
                 </button>
               </div>
             )}
