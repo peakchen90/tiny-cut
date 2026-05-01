@@ -15,7 +15,7 @@ use tauri::{
 };
 
 static VIDEO_PORT: AtomicU16 = AtomicU16::new(0);
-const GITHUB_URL: &str = "https://github.com/peakchen90";
+const GITHUB_URL: &str = "https://github.com/peakchen90/tiny-cut";
 
 struct MenuLabels {
     file: String,
@@ -173,9 +173,20 @@ fn get_video_port() -> u16 {
 
 #[tauri::command]
 fn set_menu_state(app: tauri::AppHandle, lang: String, has_video: bool) -> Result<(), String> {
-    let menu = build_app_menu(&app, &lang, has_video).map_err(|err| err.to_string())?;
-    app.set_menu(menu).map_err(|err| err.to_string())?;
-    Ok(())
+    #[cfg(not(target_os = "macos"))]
+    {
+        let _ = app;
+        let _ = lang;
+        let _ = has_video;
+        return Ok(());
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        let menu = build_app_menu(&app, &lang, has_video).map_err(|err| err.to_string())?;
+        app.set_menu(menu).map_err(|err| err.to_string())?;
+        Ok(())
+    }
 }
 
 fn main() {
@@ -183,8 +194,10 @@ fn main() {
     let port = rt.block_on(video_server::start());
     VIDEO_PORT.store(port, Ordering::Relaxed);
 
-    tauri::Builder::default()
-        .plugin(tauri_plugin_dialog::init())
+    let builder = tauri::Builder::default().plugin(tauri_plugin_dialog::init());
+
+    #[cfg(target_os = "macos")]
+    let builder = builder
         .menu(|handle| build_app_menu(handle, &system_menu_lang(), false))
         .on_menu_event(|app, event| match event.id().as_ref() {
             "file-new-project" => {
@@ -216,6 +229,23 @@ fn main() {
                 }
             }
             _ => {}
+        });
+
+    builder
+        .setup(|app| {
+            if let Some(window) = app.get_webview_window("main") {
+                #[cfg(target_os = "macos")]
+                {
+                    window.set_decorations(true)?;
+                    window.set_title_bar_style(tauri::TitleBarStyle::Overlay)?;
+                }
+
+                #[cfg(target_os = "windows")]
+                {
+                    window.set_decorations(false)?;
+                }
+            }
+            Ok(())
         })
         .invoke_handler(tauri::generate_handler![
             commands::trim_video,
