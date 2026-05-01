@@ -51,7 +51,7 @@ export function InfoModal({ filePath, onClose }: Props) {
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal modal-narrow">
         <div className="modal-header">
-          <h2>{t("videoInfo")}</h2>
+          <h2>{t("video.videoInfo")}</h2>
           <button className="modal-close" onClick={onClose}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -62,57 +62,57 @@ export function InfoModal({ filePath, onClose }: Props) {
 
         <div className="modal-body">
           {loading ? (
-            <div className="modal-loading">{t("loadingVideoInfo")}</div>
+            <div className="modal-loading">{t("video.loadingVideoInfo")}</div>
           ) : error ? (
             <div className="modal-error">{error}</div>
           ) : videoInfo && (
             <div className="info-table">
               <div className="info-row">
-                <span className="info-label">{t("fileName")}</span>
+                <span className="info-label">{t("video.fileName")}</span>
                 <span className="info-value">{getFileName(videoInfo.file_path)}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("fileSize")}</span>
+                <span className="info-label">{t("video.fileSize")}</span>
                 <span className="info-value">{formatFileSize(videoInfo.file_size)}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("duration")}</span>
+                <span className="info-label">{t("video.duration")}</span>
                 <span className="info-value">{formatTimeShort(videoInfo.duration)}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("resolution")}</span>
+                <span className="info-label">{t("video.resolution")}</span>
                 <span className="info-value">{videoInfo.width}×{videoInfo.height}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("fps")}</span>
+                <span className="info-label">{t("video.fps")}</span>
                 <span className="info-value">{videoInfo.fps.toFixed(2)} fps</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("videoCodec")}</span>
+                <span className="info-label">{t("video.videoCodec")}</span>
                 <span className="info-value">{videoInfo.codec || "-"}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("colorSpace")}</span>
+                <span className="info-label">{t("video.colorSpace")}</span>
                 <span className="info-value">{videoInfo.color_space || "-"}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("bitrate")}</span>
+                <span className="info-label">{t("video.bitrate")}</span>
                 <span className="info-value">{formatBitrate(videoInfo.bitrate)}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("audioCodec")}</span>
+                <span className="info-label">{t("video.audioCodec")}</span>
                 <span className="info-value">{videoInfo.audio_codec || "-"}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("audioSampleRate")}</span>
+                <span className="info-label">{t("video.audioSampleRate")}</span>
                 <span className="info-value">{formatSampleRate(videoInfo.audio_sample_rate)}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("audioChannels")}</span>
+                <span className="info-label">{t("video.audioChannels")}</span>
                 <span className="info-value">{videoInfo.audio_channels > 0 ? videoInfo.audio_channels : "-"}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("audioBitrate")}</span>
+                <span className="info-label">{t("video.audioBitrate")}</span>
                 <span className="info-value">{formatBitrate(videoInfo.audio_bitrate)}</span>
               </div>
             </div>

@@ -26,7 +26,19 @@ const messages = files.map((file) => {
     if (!json || Array.isArray(json) || typeof json !== "object") {
       throw new Error("root value must be an object");
     }
-    return { file, keys: Object.keys(json).sort() };
+    const keys = [];
+    for (const [moduleName, moduleMessages] of Object.entries(json)) {
+      if (!moduleMessages || Array.isArray(moduleMessages) || typeof moduleMessages !== "object") {
+        throw new Error(`${moduleName} must be an object`);
+      }
+      for (const [key, value] of Object.entries(moduleMessages)) {
+        if (typeof value !== "string") {
+          throw new Error(`${moduleName}.${key} must be a string`);
+        }
+        keys.push(`${moduleName}.${key}`);
+      }
+    }
+    return { file, keys: keys.sort() };
   } catch (err) {
     console.error(`Invalid i18n file ${file}: ${err.message}`);
     process.exit(1);

@@ -4,7 +4,10 @@ import zh from "../../i18n/zh.json";
 const messages = { en, zh } as const;
 
 type Lang = keyof typeof messages;
-export type MessageKey = keyof (typeof messages)["en"];
+type MessageGroup = keyof (typeof messages)["en"];
+export type MessageKey = {
+  [Group in MessageGroup]: `${Group}.${Extract<keyof (typeof messages)["en"][Group], string>}`;
+}[MessageGroup];
 
 function detectLang(): Lang {
   const lang = navigator.language.toLowerCase();
@@ -15,7 +18,10 @@ function detectLang(): Lang {
 let currentLang: Lang = detectLang();
 
 export function t(key: MessageKey): string {
-  return messages[currentLang][key] || messages.en[key];
+  const [group, name] = key.split(".") as [MessageGroup, string];
+  const currentMessages = messages[currentLang][group] as Record<string, string>;
+  const fallbackMessages = messages.en[group] as Record<string, string>;
+  return currentMessages[name] || fallbackMessages[name] || key;
 }
 
 export function setLang(lang: Lang) {

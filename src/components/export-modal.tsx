@@ -30,7 +30,7 @@ const FORMAT_OPTIONS = [
 ];
 
 function getResolutionOptions(origW: number, origH: number): ResolutionOption[] {
-  const options: ResolutionOption[] = [{ label: `${t("original")} (${origW}×${origH})`, width: origW, height: origH }];
+  const options: ResolutionOption[] = [{ label: `${t("export.original")} (${origW}×${origH})`, width: origW, height: origH }];
   const presets = [
     { label: "4K", w: 3840, h: 2160 },
     { label: "1440p", w: 2560, h: 1440 },
@@ -49,7 +49,7 @@ function getResolutionOptions(origW: number, origH: number): ResolutionOption[] 
 }
 
 function getFpsOptions(origFps: number): FpsOption[] {
-  const options: FpsOption[] = [{ label: `${t("original")} (${origFps} fps)`, value: origFps }];
+  const options: FpsOption[] = [{ label: `${t("export.original")} (${origFps} fps)`, value: origFps }];
   const presets = [60, 30, 25, 24];
   for (const f of presets) {
     if (f < origFps) {
@@ -257,7 +257,7 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
       if (result.success) {
         onExportEnd("success");
       } else {
-        onExportEnd("error", result.message || t("exportFailed"));
+        onExportEnd("error", result.message || t("export.exportFailed"));
       }
     } catch (err) {
       console.error("Export error:", err);
@@ -271,7 +271,7 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
     <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal">
         <div className="modal-header">
-          <h2>{t("exportSettings")}</h2>
+          <h2>{t("export.exportSettings")}</h2>
           <button className="modal-close" onClick={onClose}>
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
               <line x1="18" y1="6" x2="6" y2="18" />
@@ -282,13 +282,13 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
 
         <div className="modal-body">
           {loading ? (
-            <div className="modal-loading">{t("loadingVideoInfo")}</div>
+            <div className="modal-loading">{t("video.loadingVideoInfo")}</div>
           ) : error ? (
             <div className="modal-error">{error}</div>
           ) : videoInfo && (
             <>
               <div className="modal-section">
-                <div className="modal-section-title">{t("exportPath")}</div>
+                <div className="modal-section-title">{t("export.exportPath")}</div>
                 <div className="output-path-row">
                   <input
                     className="output-path-input"
@@ -296,14 +296,14 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
                     value={outputPath}
                     onChange={(e) => setOutputPath(e.target.value)}
                     onBlur={handleBlur}
-                    placeholder={t("exportPath")}
+                    placeholder={t("export.exportPath")}
                   />
-                  <button className="btn-select-path" onClick={handleSelectPath}>{t("select")}</button>
+                  <button className="btn-select-path" onClick={handleSelectPath}>{t("export.select")}</button>
                 </div>
               </div>
 
               <div className="modal-section">
-                <div className="modal-section-title">{t("resolution")}</div>
+                <div className="modal-section-title">{t("video.resolution")}</div>
                 <div className="option-pills">
                   {resolutionOptions.map((opt, i) => (
                     <button
@@ -318,7 +318,7 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
               </div>
 
               <div className="modal-section">
-                <div className="modal-section-title">{t("fps")}</div>
+                <div className="modal-section-title">{t("video.fps")}</div>
                 <div className="option-pills">
                   {fpsOptions.map((opt, i) => (
                     <button
@@ -333,7 +333,7 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
               </div>
 
               <div className="modal-section">
-                <div className="modal-section-title">{t("format")}</div>
+                <div className="modal-section-title">{t("video.format")}</div>
                 <div className="option-pills">
                   {FORMAT_OPTIONS.map((opt, i) => (
                     <button
@@ -352,15 +352,15 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
 
         <div className="modal-footer">
           <div className="modal-footer-info">
-            <span className="modal-footer-label">{t("estimatedSize")}</span>
+            <span className="modal-footer-label">{t("export.estimatedSize")}</span>
             <span className="modal-footer-value">{formatSize(estimatedSize)}</span>
             <span className="modal-footer-sep">/</span>
-            <span className="modal-footer-label">{t("trimDuration")}</span>
+            <span className="modal-footer-label">{t("editor.trimDuration")}</span>
             <span className="modal-footer-value">{formatDuration(trimDuration)}</span>
           </div>
           <div className="modal-footer-right">
             <button className="btn-export" onClick={handleExport} disabled={loading || exporting || !outputPath}>
-              {exporting ? t("exporting") : t("export")}
+              {exporting ? t("export.exporting") : t("export.export")}
             </button>
           </div>
         </div>

@@ -124,11 +124,11 @@ export default function App() {
   const handleExportEnd = useCallback((status: ExportStatus, message?: string) => {
     setExportStatus(status);
     if (status === "success") {
-      setToast({ message: t("exportSuccess"), type: "success" });
+      setToast({ message: t("export.exportSuccess"), type: "success" });
       setTimeout(() => setToast(null), 3000);
     }
     if (status === "error") {
-      setToast({ message: message || t("exportFailed"), type: "error" });
+      setToast({ message: message || t("export.exportFailed"), type: "error" });
       setTimeout(() => setToast(null), 5000);
     }
     if (status !== "idle") {
@@ -199,8 +199,11 @@ export default function App() {
   }, [filePath, togglePlay, currentTime, trimRange, showExportModal, showInfoModal, showMenu, exportStatus]);
 
   useEffect(() => {
-    void invoke("set_menu_language", { lang: getLang() }).catch(() => {});
-  }, []);
+    void invoke("set_menu_state", {
+      lang: getLang(),
+      hasVideo: Boolean(filePath),
+    }).catch(() => {});
+  }, [filePath]);
 
   useEffect(() => {
     let unlistenMenu: (() => void) | undefined;
@@ -345,7 +348,7 @@ export default function App() {
               <line x1="12" y1="5" x2="12" y2="19" />
               <line x1="5" y1="12" x2="19" y2="12" />
             </svg>
-            <span className="open-dropzone-text">{t("dropVideo")}</span>
+            <span className="open-dropzone-text">{t("app.dropVideo")}</span>
           </div>
         </div>
       </div>
@@ -369,12 +372,12 @@ export default function App() {
       <div className="editor-bottom">
         <div className="time-labels">
           <div className="time-label">
-            <span className="time-label-tag">{t("start")}</span>
+            <span className="time-label-tag">{t("editor.start")}</span>
             <span className="time-label-value">{formatTimeShort(trimRange.startTime)}</span>
           </div>
           <span className="time-label-duration">{formatTimeShort(Math.max(0, currentTime - trimRange.startTime))} / {formatTimeShort(trimDuration)}</span>
           <div className="time-label">
-            <span className="time-label-tag">{t("end")}</span>
+            <span className="time-label-tag">{t("editor.end")}</span>
             <span className="time-label-value">{formatTimeShort(trimRange.endTime)}</span>
           </div>
         </div>
@@ -403,7 +406,7 @@ export default function App() {
           />
 
           <div className="more-container">
-            <button className="btn-more" onClick={handleMenuToggle} title={t("more")}>
+            <button className="btn-more" onClick={handleMenuToggle} title={t("app.more")}>
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor">
                 <circle cx="12" cy="6" r="2" />
                 <circle cx="12" cy="12" r="2" />
@@ -418,7 +421,7 @@ export default function App() {
                       <line x1="12" y1="5" x2="12" y2="19" />
                       <line x1="5" y1="12" x2="19" y2="12" />
                     </svg>
-                    <span>{t("newProject")}</span>
+                    <span>{t("menu.newProject")}</span>
                   </div>
                   {renderShortcut(isMac ? '⌘+N' : 'CTRL+N')}
                 </button>
@@ -429,7 +432,7 @@ export default function App() {
                       <line x1="12" y1="16" x2="12" y2="12" />
                       <line x1="12" y1="8" x2="12.01" y2="8" />
                     </svg>
-                    <span>{t("info")}</span>
+                    <span>{t("menu.info")}</span>
                   </div>
                   {renderShortcut(isMac ? '⌘+I' : 'CTRL+I')}
                 </button>
@@ -440,7 +443,7 @@ export default function App() {
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
-                    <span>{exportStatus === "exporting" ? t("exporting") : t("exportVideo")}</span>
+                    <span>{exportStatus === "exporting" ? t("export.exporting") : t("menu.exportVideo")}</span>
                   </div>
                   {renderShortcut(isMac ? '⌘+E' : 'CTRL+E')}
                 </button>
