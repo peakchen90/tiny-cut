@@ -32,17 +32,9 @@ jobs:
       matrix:
         include:
           - platform: "macos-latest"
-            target: "aarch64-apple-darwin"
-            ffmpeg_url: "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.0/ffmpeg-darwin-arm64"
-            ffmpeg_bin: "ffmpeg-aarch64-apple-darwin"
-          - platform: "macos-latest"
             target: "x86_64-apple-darwin"
             ffmpeg_url: "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.0/ffmpeg-darwin-x64"
             ffmpeg_bin: "ffmpeg-x86_64-apple-darwin"
-          - platform: "windows-latest"
-            target: "x86_64-pc-windows-msvc"
-            ffmpeg_url: "https://github.com/eugeneware/ffmpeg-static/releases/download/b6.0/ffmpeg-win32-x64"
-            ffmpeg_bin: "ffmpeg-x86_64-pc-windows-msvc.exe"
 
     runs-on: ${{ matrix.platform }}
     steps:
