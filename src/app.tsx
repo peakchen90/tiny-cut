@@ -123,14 +123,14 @@ export default function App() {
     }
   }, []);
 
-  const isMac = navigator.platform.toLowerCase().includes("mac");
+  const isMac = /macintosh|mac os x|mac_powerpc/i.test(navigator.userAgent);
 
   const renderShortcut = (text: string) => (
     <span className="more-menu-item-shortcut">
       {text.split('+').map((part, i) => (
         <span key={i}>
           {i > 0 && <span className="shortcut-sep">+</span>}
-          <span className="shortcut-key">{part}</span>
+          <span className={part === '⌘' ? 'shortcut-key shortcut-key-cmd' : 'shortcut-key'}>{part}</span>
         </span>
       ))}
     </span>

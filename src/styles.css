@@ -510,6 +510,10 @@ body::before {
   display: inline-block;
 }
 
+.shortcut-key-cmd {
+  font-size: 16px;
+}
+
 /* ── Modal Overlay ── */
 .modal-overlay {
   position: fixed;
