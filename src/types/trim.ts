@@ -16,7 +16,6 @@ export interface VideoInfo {
   file_size: number;
   file_path: string;
   codec: string;
-  color_space: string;
   audio_codec: string;
   audio_sample_rate: number;
   audio_channels: number;

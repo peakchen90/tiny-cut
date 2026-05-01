@@ -39,7 +39,6 @@ pub struct VideoInfo {
     pub file_size: u64,
     pub file_path: String,
     pub codec: String,
-    pub color_space: String,
     pub audio_codec: String,
     pub audio_sample_rate: u32,
     pub audio_channels: u32,
@@ -169,7 +168,6 @@ pub fn get_video_info(app: &tauri::AppHandle, input_path: &str) -> Result<VideoI
     let mut bitrate = 0u64;
     let mut duration = 0.0f64;
     let mut codec = String::new();
-    let mut color_space = String::new();
     let mut audio_codec = String::new();
     let mut audio_sample_rate = 0u32;
     let mut audio_channels = 0u32;
@@ -204,14 +202,6 @@ pub fn get_video_info(app: &tauri::AppHandle, input_path: &str) -> Result<VideoI
                 }
             }
 
-            // Parse color space (e.g., "yuv420p" from "h264, yuv420p,")
-            if let Some(start) = line.find(&format!("{}, ", codec)) {
-                let after_codec = &line[start + codec.len() + 2..];
-                if let Some(end) = after_codec.find(',') {
-                    color_space = after_codec[..end].trim().to_string();
-                }
-            }
-
             // Parse resolution (e.g., "1920x1080" or "1920x1080,")
             let parts: Vec<&str> = line.split_whitespace().collect();
             for (i, part) in parts.iter().enumerate() {
@@ -243,31 +233,40 @@ pub fn get_video_info(app: &tauri::AppHandle, input_path: &str) -> Result<VideoI
     for line in stderr.lines() {
         if line.contains("Audio:") {
             // Parse audio codec (e.g., "aac" from "Audio: aac,")
+            let raw_audio_codec;
             if let Some(start) = line.find("Audio: ") {
                 let audio_str = &line[start + 7..];
                 if let Some(end) = audio_str.find(',') {
-                    audio_codec = simplify_codec(audio_str[..end].trim());
+                    raw_audio_codec = audio_str[..end].trim().to_string();
+                    audio_codec = simplify_codec(&raw_audio_codec);
+                } else {
+                    raw_audio_codec = String::new();
                 }
+            } else {
+                raw_audio_codec = String::new();
             }
 
             // Parse audio sample rate (e.g., "44100 Hz" from "aac, 44100 Hz,")
-            if let Some(start) = line.find(&format!("{}, ", audio_codec)) {
-                let after_codec = &line[start + audio_codec.len() + 2..];
-                let parts: Vec<&str> = after_codec.split_whitespace().collect();
-                for (i, part) in parts.iter().enumerate() {
-                    if *part == "Hz" && i > 0 {
-                        if let Ok(rate) = parts[i - 1].parse::<u32>() {
-                            audio_sample_rate = rate;
+            if !raw_audio_codec.is_empty() {
+                if let Some(start) = line.find(&format!("{}, ", raw_audio_codec)) {
+                    let after_codec = &line[start + raw_audio_codec.len() + 2..];
+                    let parts: Vec<&str> = after_codec.split_whitespace().collect();
+                    for (i, part) in parts.iter().enumerate() {
+                        let clean = part.trim_end_matches(|c: char| !c.is_alphanumeric());
+                        if clean == "Hz" && i > 0 {
+                            if let Ok(rate) = parts[i - 1].parse::<u32>() {
+                                audio_sample_rate = rate;
+                            }
                         }
-                    }
-                    // Parse audio channels (e.g., "stereo" or "5.1")
-                    if *part == "stereo" {
-                        audio_channels = 2;
-                    } else if *part == "mono" {
-                        audio_channels = 1;
-                    } else if let Some(channel_count) = part.strip_suffix(".1") {
-                        if let Ok(ch) = channel_count.parse::<u32>() {
-                            audio_channels = ch + 1;
+                        // Parse audio channels (e.g., "stereo" or "5.1")
+                        if clean == "stereo" {
+                            audio_channels = 2;
+                        } else if clean == "mono" {
+                            audio_channels = 1;
+                        } else if let Some(channel_count) = clean.strip_suffix(".1") {
+                            if let Ok(ch) = channel_count.parse::<u32>() {
+                                audio_channels = ch + 1;
+                            }
                         }
                     }
                 }
@@ -296,7 +295,6 @@ pub fn get_video_info(app: &tauri::AppHandle, input_path: &str) -> Result<VideoI
         file_size,
         file_path: input_path.to_string(),
         codec,
-        color_space,
         audio_codec,
         audio_sample_rate,
         audio_channels,

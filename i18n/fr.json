@@ -49,7 +49,6 @@
     "fileSize": "Taille du fichier",
     "duration": "Durée",
     "videoCodec": "Codec vidéo",
-    "colorSpace": "Espace colorimétrique",
     "audioCodec": "Codec audio",
     "audioSampleRate": "Fréquence d'échantillonnage audio",
     "audioChannels": "Canaux audio",

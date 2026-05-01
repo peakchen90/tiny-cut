@@ -92,10 +92,6 @@ export function InfoModal({ filePath, onClose }: Props) {
                 <span className="info-value">{videoInfo.codec || "-"}</span>
               </div>
               <div className="info-row">
-                <span className="info-label">{t("video.colorSpace")}</span>
-                <span className="info-value">{videoInfo.color_space || "-"}</span>
-              </div>
-              <div className="info-row">
                 <span className="info-label">{t("video.bitrate")}</span>
                 <span className="info-value">{formatBitrate(videoInfo.bitrate)}</span>
               </div>

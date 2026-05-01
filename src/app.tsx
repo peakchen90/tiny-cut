@@ -26,6 +26,7 @@ export default function App() {
   const [exportStatus, setExportStatus] = useState<ExportStatus>("idle");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [videoKey, setVideoKey] = useState(0);
+  const [isMaximized, setIsMaximized] = useState(false);
 
   const handleDurationChange = useCallback((dur: number) => {
     setDuration(dur);
@@ -137,6 +138,18 @@ export default function App() {
   }, []);
 
   const isMac = /macintosh|mac os x|mac_powerpc/i.test(navigator.userAgent);
+
+  // Track window maximized state for Windows titlebar button icon
+  useEffect(() => {
+    const win = getCurrentWindow();
+    win.isMaximized().then(setIsMaximized).catch(() => {});
+    const unlisten = win.onResized(() => {
+      win.isMaximized().then(setIsMaximized).catch(() => {});
+    });
+    return () => {
+      unlisten.then(fn => fn()).catch(() => {});
+    };
+  }, []);
 
   const renderShortcut = (text: string) => (
     <span className="more-menu-item-shortcut">
@@ -312,11 +325,18 @@ export default function App() {
             className="window-control"
             onPointerDown={handleWindowControlPointerDown}
             onPointerUp={handleWindowMaximize}
-            title="Maximize"
+            title={isMaximized ? "Restore" : "Maximize"}
           >
-            <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1">
-              <rect x="2" y="2" width="6" height="6" />
-            </svg>
+            {isMaximized ? (
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1">
+                <rect x="1" y="3" width="5" height="5" />
+                <rect x="3" y="1" width="5" height="5" fill="#000" />
+              </svg>
+            ) : (
+              <svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" strokeWidth="1">
+                <rect x="2" y="2" width="6" height="6" />
+              </svg>
+            )}
           </button>
           <button
             type="button"
