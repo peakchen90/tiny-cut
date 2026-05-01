@@ -3,9 +3,10 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "vite",
-    "build": "tsc && vite build",
+    "dev": "npm run validate:i18n && vite",
+    "build": "npm run validate:i18n && tsc && vite build",
     "preview": "vite preview",
+    "validate:i18n": "node scripts/validate-i18n.js",
     "setup": "node scripts/setup.js",
     "tauri:dev": "npm run setup && tauri dev",
     "tauri:build": "npm run setup && tauri build",

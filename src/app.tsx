@@ -1,5 +1,7 @@
 import { useState, useCallback, useRef, useEffect } from "react";
 import { open } from "@tauri-apps/plugin-dialog";
+import { invoke } from "@tauri-apps/api/core";
+import { listen } from "@tauri-apps/api/event";
 import { getCurrentWebview } from "@tauri-apps/api/webview";
 import { getCurrentWindow } from "@tauri-apps/api/window";
 import VideoPlayer from "./components/video-player";
@@ -7,7 +9,7 @@ import Timeline from "./components/timeline";
 import ExportModal from "./components/export-modal";
 import { InfoModal } from "./components/info-modal";
 import { formatTimeShort } from "./lib/time";
-import { t } from "./lib/i18n";
+import { getLang, t } from "./lib/i18n";
 import { getFileName } from "./lib/path";
 import type { TrimRange, ExportStatus } from "./types/trim";
 
@@ -109,6 +111,12 @@ export default function App() {
     }
   }, []);
 
+  const handleInfoClick = useCallback(() => {
+    if (!filePath) return;
+    setShowInfoModal(true);
+    setShowMenu(false);
+  }, [filePath]);
+
   const handleExportStart = useCallback(() => {
     setExportStatus("exporting");
   }, []);
@@ -147,8 +155,6 @@ export default function App() {
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
 
-      const isMod = isMac ? e.metaKey : e.ctrlKey;
-
       // ESC: Close modals
       if (e.key === 'Escape') {
         if (showExportModal && exportStatus !== "exporting") {
@@ -163,32 +169,6 @@ export default function App() {
           setShowMenu(false);
           return;
         }
-      }
-
-      // Command/Ctrl + N: New project
-      if (isMod && e.key === 'n') {
-        e.preventDefault();
-        handleNewProject();
-        return;
-      }
-
-      // Command/Ctrl + I: Info
-      if (isMod && e.key === 'i') {
-        e.preventDefault();
-        if (filePath) {
-          setShowInfoModal(true);
-          setShowMenu(false);
-        }
-        return;
-      }
-
-      // Command/Ctrl + E: Export
-      if (isMod && e.key === 'e') {
-        e.preventDefault();
-        if (filePath) {
-          handleExportClick();
-        }
-        return;
       }
 
       // Space: Toggle play
@@ -216,7 +196,35 @@ export default function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [filePath, togglePlay, isMac, handleNewProject, handleExportClick, currentTime, trimRange, showExportModal, showInfoModal, showMenu, exportStatus]);
+  }, [filePath, togglePlay, currentTime, trimRange, showExportModal, showInfoModal, showMenu, exportStatus]);
+
+  useEffect(() => {
+    void invoke("set_menu_language", { lang: getLang() }).catch(() => {});
+  }, []);
+
+  useEffect(() => {
+    let unlistenMenu: (() => void) | undefined;
+
+    void listen<string>("file-menu-action", (event) => {
+      if (event.payload === "new-project") {
+        void handleNewProject();
+        return;
+      }
+      if (event.payload === "info") {
+        handleInfoClick();
+        return;
+      }
+      if (event.payload === "export-video" && filePath && exportStatus !== "exporting") {
+        handleExportClick();
+      }
+    }).then((unlisten) => {
+      unlistenMenu = unlisten;
+    });
+
+    return () => {
+      unlistenMenu?.();
+    };
+  }, [filePath, exportStatus, handleNewProject, handleInfoClick, handleExportClick]);
 
   useEffect(() => {
     if (!showMenu) return;
@@ -414,7 +422,7 @@ export default function App() {
                   </div>
                   {renderShortcut(isMac ? '⌘+N' : 'CTRL+N')}
                 </button>
-                <button className="more-menu-item" onClick={() => { setShowInfoModal(true); setShowMenu(false); }}>
+                <button className="more-menu-item" onClick={handleInfoClick}>
                   <div className="more-menu-item-left">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                       <circle cx="12" cy="12" r="10" />
