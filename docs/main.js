@@ -113,6 +113,8 @@
       return;
     }
 
+    applyLinks(RELEASES_URL, RELEASES_URL, RELEASES_URL);
+
     fetch(API_URL)
       .then(function (res) {
         if (!res.ok) throw new Error("API error");
