@@ -126,12 +126,10 @@
         var x64 = findAsset(assets, function (n) { return /\.dmg$/i.test(n) && !/aarch64|arm64/i.test(n); });
         var win = findAsset(assets, function (n) { return /\.exe$/i.test(n); });
 
-        var armUrl = arm ? arm.browser_download_url : RELEASES_URL;
-        var x64Url = x64 ? x64.browser_download_url : RELEASES_URL;
-        var winUrl = win ? win.browser_download_url : RELEASES_URL;
+        if (!arm || !x64 || !win) return;
 
-        applyLinks(armUrl, x64Url, winUrl);
-        setCache(armUrl, x64Url, winUrl);
+        applyLinks(arm.browser_download_url, x64.browser_download_url, win.browser_download_url);
+        setCache(arm.browser_download_url, x64.browser_download_url, win.browser_download_url);
       })
       .catch(function () {});
   }
