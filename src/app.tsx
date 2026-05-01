@@ -127,8 +127,11 @@ export default function App() {
 
   const renderShortcut = (text: string) => (
     <span className="more-menu-item-shortcut">
-      {text.split('').map((char, i) => (
-        <span key={i} className="shortcut-key">{char}</span>
+      {text.split('+').map((part, i) => (
+        <span key={i}>
+          {i > 0 && <span className="shortcut-sep">+</span>}
+          <span className="shortcut-key">{part}</span>
+        </span>
       ))}
     </span>
   );
@@ -402,7 +405,7 @@ export default function App() {
                     </svg>
                     <span>{t("newProject")}</span>
                   </div>
-                  {renderShortcut(isMac ? '⌘+N' : 'Ctrl+N')}
+                  {renderShortcut(isMac ? '⌘+N' : 'CTRL+N')}
                 </button>
                 <button className="more-menu-item" onClick={() => { setShowInfoModal(true); setShowMenu(false); }}>
                   <div className="more-menu-item-left">
@@ -413,7 +416,7 @@ export default function App() {
                     </svg>
                     <span>{t("info")}</span>
                   </div>
-                  {renderShortcut(isMac ? '⌘+I' : 'Ctrl+I')}
+                  {renderShortcut(isMac ? '⌘+I' : 'CTRL+I')}
                 </button>
                 <button className="more-menu-item" onClick={handleExportClick} disabled={exportStatus === "exporting"}>
                   <div className="more-menu-item-left">
@@ -424,7 +427,7 @@ export default function App() {
                     </svg>
                     <span>{exportStatus === "exporting" ? t("exporting") : t("exportVideo")}</span>
                   </div>
-                  {renderShortcut(isMac ? '⌘+E' : 'Ctrl+E')}
+                  {renderShortcut(isMac ? '⌘+E' : 'CTRL+E')}
                 </button>
               </div>
             )}
