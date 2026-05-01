@@ -89,7 +89,7 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
     const dirMatch = filePath.match(/^(.*?)[/\\][^/\\]+$/);
     const dir = dirMatch ? dirMatch[1] : '';
     const now = new Date();
-    const ts = `${now.getFullYear().toString().slice(-2)}${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}${String(now.getSeconds()).padStart(2, '0')}`;
+    const ts = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
     // Use the same path separator as the original path
     const separator = filePath.includes('\\') ? '\\' : '/';
     setOutputPath(`${dir}${separator}${defaultName}_${ts}.${fmt.ext}`);
