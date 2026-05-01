@@ -112,7 +112,7 @@ jobs:
         with:
           releaseId: ${{ needs.create-release.outputs.release_id }}
           args: "--target ${{ matrix.target }}"
-          releaseAssetNamePattern: "${{ matrix.asset_name }}[ext]"
+          assetNamePattern: "${{ matrix.asset_name }}[ext]"
 
       - name: Verify bundled FFmpeg
         shell: bash
