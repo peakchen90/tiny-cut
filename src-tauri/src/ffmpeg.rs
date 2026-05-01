@@ -33,6 +33,7 @@ pub struct FfmpegResult {
 pub struct VideoInfo {
     pub width: u32,
     pub height: u32,
+    pub rotation: i32,
     pub fps: f64,
     pub bitrate: u64,
     pub duration: f64,
@@ -102,8 +103,63 @@ fn ffmpeg_path(app: &tauri::AppHandle) -> Result<String, String> {
     ))
 }
 
-fn detect_hw_encoder(ffmpeg: &str) -> &'static str {
-    let encoder = if cfg!(target_os = "macos") {
+fn video_rotation(ffmpeg: &str, input_path: &str) -> Result<i32, String> {
+    let output = create_command(ffmpeg)
+        .args(["-i", input_path])
+        .output()
+        .map_err(|e| format!("Failed to execute ffmpeg: {}", e))?;
+
+    Ok(parse_rotation(&String::from_utf8_lossy(&output.stderr)))
+}
+
+fn parse_rotation(stderr: &str) -> i32 {
+    for line in stderr.lines() {
+        let lower = line.to_lowercase();
+        if lower.contains("rotation of") {
+            if let Some(value) = lower
+                .split("rotation of")
+                .nth(1)
+                .and_then(|value| value.split_whitespace().next())
+                .and_then(|value| value.parse::<f64>().ok())
+            {
+                return normalize_rotation(value);
+            }
+        }
+
+        if lower.contains("rotate") {
+            if let Some(value) = line
+                .rsplit(':')
+                .next()
+                .and_then(|value| value.trim().parse::<f64>().ok())
+            {
+                return normalize_rotation(value);
+            }
+        }
+    }
+    0
+}
+
+fn normalize_rotation(rotation: f64) -> i32 {
+    let rounded = rotation.round() as i32;
+    ((rounded % 360) + 360) % 360
+}
+
+fn detect_hw_encoder(ffmpeg: &str, video_codec: Option<&str>) -> &'static str {
+    let is_h265 = video_codec
+        .map(|codec| {
+            let lower = codec.to_lowercase();
+            lower.contains("h265") || lower.contains("h.265") || lower.contains("hevc")
+        })
+        .unwrap_or(false);
+    let encoder = if is_h265 {
+        if cfg!(target_os = "macos") {
+            "hevc_videotoolbox"
+        } else if cfg!(target_os = "windows") {
+            "hevc_nvenc"
+        } else {
+            "libx265"
+        }
+    } else if cfg!(target_os = "macos") {
         "h264_videotoolbox"
     } else if cfg!(target_os = "windows") {
         "h264_nvenc"
@@ -133,6 +189,13 @@ fn detect_hw_encoder(ffmpeg: &str) -> &'static str {
             encoder
         }
         _ => {
+            if is_h265 {
+                println!(
+                    "Hardware encoder {} not available, falling back to libx265",
+                    encoder
+                );
+                return "libx265";
+            }
             println!(
                 "Hardware encoder {} not available, falling back to libx264",
                 encoder
@@ -172,6 +235,7 @@ pub fn get_video_info(app: &tauri::AppHandle, input_path: &str) -> Result<VideoI
     let mut audio_sample_rate = 0u32;
     let mut audio_channels = 0u32;
     let mut audio_bitrate = 0u64;
+    let rotation = parse_rotation(&stderr);
 
     // Parse duration (e.g., "Duration: 00:01:23.45")
     if let Some(dur_line) = stderr.lines().find(|l| l.contains("Duration:")) {
@@ -286,9 +350,14 @@ pub fn get_video_info(app: &tauri::AppHandle, input_path: &str) -> Result<VideoI
         }
     }
 
+    if rotation == 90 || rotation == 270 {
+        std::mem::swap(&mut width, &mut height);
+    }
+
     Ok(VideoInfo {
         width,
         height,
+        rotation,
         fps,
         bitrate,
         duration,
@@ -416,6 +485,52 @@ pub fn trim_fast(
     }
 }
 
+pub fn trim_audio(
+    app: &tauri::AppHandle,
+    input_path: &str,
+    output_path: &str,
+    start_secs: f64,
+    duration: f64,
+    audio_bitrate: Option<u64>,
+) -> Result<FfmpegResult, String> {
+    let ffmpeg = ffmpeg_path(app)?;
+    let bitrate_kbps = audio_bitrate.unwrap_or(128000) / 1000;
+    let output = create_command(&ffmpeg)
+        .args([
+            "-y",
+            "-ss",
+            &start_secs.to_string(),
+            "-i",
+            input_path,
+            "-t",
+            &duration.to_string(),
+            "-c:v",
+            "copy",
+            "-c:a",
+            "aac",
+            "-b:a",
+            &format!("{}k", bitrate_kbps),
+            "-movflags",
+            "+faststart",
+            "-avoid_negative_ts",
+            "1",
+            output_path,
+        ])
+        .output()
+        .map_err(|e| format!("Failed to execute ffmpeg: {}", e))?;
+
+    if output.status.success() {
+        Ok(FfmpegResult {
+            success: true,
+            message: "Audio trim completed".into(),
+            output_path: Some(output_path.into()),
+        })
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        Err(format!("FFmpeg error: {}", stderr))
+    }
+}
+
 #[allow(clippy::too_many_arguments)]
 pub fn trim_precise(
     app: &tauri::AppHandle,
@@ -427,23 +542,31 @@ pub fn trim_precise(
     height: Option<u32>,
     fps: Option<f64>,
     bitrate: Option<u64>,
+    video_codec: Option<String>,
+    audio_bitrate: Option<u64>,
 ) -> Result<FfmpegResult, String> {
     let ffmpeg = ffmpeg_path(app)?;
-    let encoder = detect_hw_encoder(&ffmpeg);
-    let mut args = vec![
-        "-y".to_string(),
-        "-ss".to_string(),
-        start_secs.to_string(),
+    let encoder = detect_hw_encoder(&ffmpeg, video_codec.as_deref());
+    let rotation = video_rotation(&ffmpeg, input_path)?;
+    let mut args = vec!["-y".to_string(), "-ss".to_string(), start_secs.to_string()];
+    if rotation != 0 {
+        args.push("-noautorotate".to_string());
+    }
+    args.extend_from_slice(&[
         "-i".to_string(),
         input_path.to_string(),
         "-t".to_string(),
         duration.to_string(),
-    ];
+    ]);
 
     // Video filter for resolution and fps
     let mut vf_parts = Vec::new();
     if let (Some(w), Some(h)) = (width, height) {
-        vf_parts.push(format!("scale={}:{}", w, h));
+        if rotation == 90 || rotation == 270 {
+            vf_parts.push(format!("scale={}:{}", h, w));
+        } else {
+            vf_parts.push(format!("scale={}:{}", w, h));
+        }
     }
     if let Some(f) = fps {
         vf_parts.push(format!("fps={}", f));
@@ -455,6 +578,14 @@ pub fn trim_precise(
 
     args.push("-c:v".to_string());
     args.push(encoder.to_string());
+    if encoder.contains("265") || encoder.contains("hevc") {
+        args.push("-tag:v".to_string());
+        args.push("hvc1".to_string());
+    }
+    if rotation != 0 {
+        args.push("-metadata:s:v:0".to_string());
+        args.push(format!("rotate={}", rotation));
+    }
 
     // Set video bitrate if provided
     if let Some(b) = bitrate {
@@ -474,7 +605,7 @@ pub fn trim_precise(
         "-c:a".to_string(),
         "aac".to_string(),
         "-b:a".to_string(),
-        "128k".to_string(),
+        format!("{}k", audio_bitrate.unwrap_or(128000) / 1000),
         "-movflags".to_string(),
         "+faststart".to_string(),
         output_path.to_string(),

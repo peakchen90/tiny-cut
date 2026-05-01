@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
 import { getVideoInfo, trimVideo, checkFileExists } from "../lib/tauri";
 import { t } from "../lib/i18n";
@@ -22,6 +22,16 @@ interface ResolutionOption {
 interface FpsOption {
   label: string;
   value: number;
+}
+
+interface AudioBitrateOption {
+  label: string;
+  value: number | null;
+}
+
+interface VideoCodecOption {
+  label: string;
+  value: string | null;
 }
 
 const FORMAT_OPTIONS = [
@@ -59,16 +69,76 @@ function getFpsOptions(origFps: number): FpsOption[] {
   return options;
 }
 
+function getAudioBitrateOptions(origBitrate: number): AudioBitrateOption[] {
+  const originalLabel = origBitrate > 0 ? `${t("export.original")} (${Math.round(origBitrate / 1000)} kbps)` : t("export.original");
+  const options: AudioBitrateOption[] = [{ label: originalLabel, value: null }];
+  const presets = [256, 192, 128];
+  for (const bitrate of presets) {
+    if (origBitrate > bitrate * 1000) {
+      options.push({ label: `${bitrate} kbps`, value: bitrate * 1000 });
+    }
+  }
+  return options;
+}
+
+function getVideoCodecOptions(origCodec: string): VideoCodecOption[] {
+  const options: VideoCodecOption[] = [{ label: origCodec ? `${t("export.original")} (${origCodec})` : t("export.original"), value: null }];
+  const codecs = ["H.264", "H.265"];
+  for (const codec of codecs) {
+    if (origCodec !== codec) {
+      options.push({ label: codec, value: codec });
+    }
+  }
+  return options;
+}
+
+function getSourceTotalBitrate(info: VideoInfo): number {
+  if (info.bitrate > 0) return info.bitrate;
+  if (info.file_size > 0 && info.duration > 0) return Math.round(info.file_size * 8 / info.duration);
+  return 0;
+}
+
+function getCodecKind(codec: string | undefined): "h264" | "h265" | "other" {
+  const lower = (codec || "").toLowerCase();
+  if (lower.includes("h265") || lower.includes("h.265") || lower.includes("hevc")) return "h265";
+  if (lower.includes("h264") || lower.includes("h.264") || lower.includes("avc")) return "h264";
+  return "other";
+}
+
+function getCodecBitrateScale(sourceCodec: string, targetCodec: string): number {
+  const source = getCodecKind(sourceCodec);
+  const target = getCodecKind(targetCodec);
+  if (source === "h264" && target === "h265") return 0.58;
+  if (source === "h265" && target === "h264") return 1.35;
+  if (source === "other" && target === "h265") return 0.58;
+  return 0.92;
+}
+
+function estimateVideoBitrate(info: VideoInfo, width: number, height: number, fps: number, videoCodec: string): number {
+  const totalBitrate = getSourceTotalBitrate(info);
+  const audioBitrate = info.audio_bitrate || 0;
+  const sourceVideoBitrate = Math.max(totalBitrate - audioBitrate, 0);
+  const sourcePixels = Math.max(info.width * info.height, 1);
+  const targetPixels = Math.max(width * height, 1);
+  const sourceFps = info.fps > 0 ? info.fps : fps;
+  const pixelScale = targetPixels / sourcePixels;
+  const fpsScale = fps / sourceFps;
+  return Math.max(Math.round(sourceVideoBitrate * pixelScale * fpsScale * getCodecBitrateScale(info.codec, videoCodec)), 0);
+}
+
 export default function ExportModal({ filePath, trimRange, onClose, onExportStart, onExportEnd }: Props) {
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [resolutionIdx, setResolutionIdx] = useState(0);
   const [fpsIdx, setFpsIdx] = useState(0);
+  const [audioBitrateIdx, setAudioBitrateIdx] = useState(0);
+  const [videoCodecIdx, setVideoCodecIdx] = useState(0);
   const [formatIdx, setFormatIdx] = useState(0);
   const [outputPath, setOutputPath] = useState<string>("");
   const [exporting, setExporting] = useState(false);
   const [estimatedBitrate, setEstimatedBitrate] = useState<number>(0);
+  const selectedDirRef = useRef("");
 
   useEffect(() => {
     getVideoInfo(filePath)
@@ -83,15 +153,19 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
   }, [filePath]);
 
   useEffect(() => {
+    selectedDirRef.current = "";
+  }, [filePath]);
+
+  useEffect(() => {
     const fmt = FORMAT_OPTIONS[formatIdx];
     const defaultName = getFileNameWithoutExtension(filePath);
     // Get directory path, handle both Windows and macOS paths
     const dirMatch = filePath.match(/^(.*?)[/\\][^/\\]+$/);
-    const dir = dirMatch ? dirMatch[1] : '';
+    const dir = selectedDirRef.current || (dirMatch ? dirMatch[1] : '');
     const now = new Date();
     const ts = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
     // Use the same path separator as the original path
-    const separator = filePath.includes('\\') ? '\\' : '/';
+    const separator = dir.includes('\\') || filePath.includes('\\') ? '\\' : '/';
     setOutputPath(`${dir}${separator}${defaultName}_${ts}.${fmt.ext}`);
   }, [filePath, formatIdx]);
 
@@ -133,12 +207,16 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
       defaultPath: outputPath || `${defaultName}_trimmed.${fmt.ext}`,
     });
     if (selected) {
+      const dirMatch = selected.match(/^(.*?)[/\\][^/\\]+$/);
+      selectedDirRef.current = dirMatch ? dirMatch[1] : "";
       setOutputPath(selected);
     }
   };
 
   const handleBlur = () => {
     if (!outputPath) return;
+    const dirMatch = outputPath.match(/^(.*?)[/\\][^/\\]+$/);
+    selectedDirRef.current = dirMatch ? dirMatch[1] : "";
     const fmt = FORMAT_OPTIONS[formatIdx];
     const ext = `.${fmt.ext}`;
     if (!outputPath.endsWith(ext)) {
@@ -158,31 +236,39 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
     return getFpsOptions(videoInfo.fps);
   }, [videoInfo]);
 
+  const audioBitrateOptions = useMemo(() => {
+    if (!videoInfo) return [];
+    return getAudioBitrateOptions(videoInfo.audio_bitrate);
+  }, [videoInfo]);
+
+  const videoCodecOptions = useMemo(() => {
+    if (!videoInfo) return [];
+    return getVideoCodecOptions(videoInfo.codec);
+  }, [videoInfo]);
+
   const trimDuration = trimRange.endTime - trimRange.startTime;
+  const shouldEncodeVideo = resolutionIdx !== 0 || fpsIdx !== 0 || videoCodecIdx !== 0;
+  const shouldEncodeAudio = audioBitrateIdx !== 0;
+  const mode = shouldEncodeVideo ? "precise" : shouldEncodeAudio ? "audio" : "fast";
 
   useEffect(() => {
-    if (!videoInfo || !resolutionOptions.length || !fpsOptions.length) return;
+    if (!videoInfo || !resolutionOptions.length || !fpsOptions.length || !audioBitrateOptions.length || !videoCodecOptions.length) return;
     const res = resolutionOptions[resolutionIdx];
     const f = fpsOptions[fpsIdx];
-    if (!res || !f) return;
+    const audio = audioBitrateOptions[audioBitrateIdx];
+    const videoCodec = videoCodecOptions[videoCodecIdx];
+    if (!res || !f || !videoCodec) return;
 
-    // If original, use original bitrate
-    if (resolutionIdx === 0 && fpsIdx === 0) {
-      setEstimatedBitrate(videoInfo.bitrate);
+    const totalBitrate = getSourceTotalBitrate(videoInfo);
+    const originalAudioBitrate = videoInfo.audio_bitrate || 0;
+    const selectedAudioBitrate = audio?.value ?? originalAudioBitrate;
+    if (!shouldEncodeVideo) {
+      setEstimatedBitrate(Math.max(totalBitrate - originalAudioBitrate, 0) + selectedAudioBitrate);
       return;
     }
 
-    // Calculate bitrate based on resolution and fps ratio
-    const origPixels = videoInfo.width * videoInfo.height;
-    const newPixels = res.width * res.height;
-    const pixelScale = newPixels / origPixels;
-    const fpsScale = f.value / videoInfo.fps;
-    const estimated = Math.round(videoInfo.bitrate * pixelScale * fpsScale);
-    setEstimatedBitrate(estimated);
-  }, [videoInfo, resolutionIdx, fpsIdx, resolutionOptions, fpsOptions]);
-
-  const isOriginal = resolutionIdx === 0 && fpsIdx === 0;
-  const mode = isOriginal ? "fast" : "precise";
+    setEstimatedBitrate(estimateVideoBitrate(videoInfo, res.width, res.height, f.value, videoCodec.value || videoInfo.codec) + selectedAudioBitrate);
+  }, [videoInfo, resolutionIdx, fpsIdx, audioBitrateIdx, videoCodecIdx, shouldEncodeVideo, resolutionOptions, fpsOptions, audioBitrateOptions, videoCodecOptions]);
 
   const estimatedSize = useMemo(() => {
     if (!videoInfo || !estimatedBitrate) return 0;
@@ -232,15 +318,14 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
 
     const res = resolutionOptions[resolutionIdx];
     const f = fpsOptions[fpsIdx];
+    const audioBitrate = audioBitrateOptions[audioBitrateIdx];
+    const videoCodec = videoCodecOptions[videoCodecIdx];
 
     try {
       // Calculate scaled bitrate based on resolution ratio
       let bitrate: number | undefined;
-      if (!isOriginal && videoInfo) {
-        const origPixels = videoInfo.width * videoInfo.height;
-        const newPixels = res.width * res.height;
-        const scale = newPixels / origPixels;
-        bitrate = Math.round(videoInfo.bitrate * scale);
+      if (shouldEncodeVideo && videoInfo) {
+        bitrate = estimateVideoBitrate(videoInfo, res.width, res.height, f.value, videoCodec?.value || videoInfo.codec);
       }
 
       const result = await trimVideo(
@@ -249,10 +334,12 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
         trimRange.startTime,
         trimRange.endTime,
         mode,
-        isOriginal ? undefined : res.width,
-        isOriginal ? undefined : res.height,
-        isOriginal ? undefined : f.value,
-        bitrate
+        shouldEncodeVideo ? res.width : undefined,
+        shouldEncodeVideo ? res.height : undefined,
+        shouldEncodeVideo ? f.value : undefined,
+        bitrate,
+        shouldEncodeVideo ? videoCodec?.value || videoInfo?.codec || undefined : undefined,
+        shouldEncodeVideo || shouldEncodeAudio ? audioBitrate?.value || videoInfo?.audio_bitrate || undefined : undefined
       );
       if (result.success) {
         onExportEnd("success");
@@ -325,6 +412,36 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
                       key={i}
                       className={`option-pill ${i === fpsIdx ? "option-pill-active" : ""}`}
                       onClick={() => setFpsIdx(i)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="modal-section">
+                <div className="modal-section-title">{t("video.audioBitrate")}</div>
+                <div className="option-pills">
+                  {audioBitrateOptions.map((opt, i) => (
+                    <button
+                      key={i}
+                      className={`option-pill ${i === audioBitrateIdx ? "option-pill-active" : ""}`}
+                      onClick={() => setAudioBitrateIdx(i)}
+                    >
+                      {opt.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              <div className="modal-section">
+                <div className="modal-section-title">{t("video.videoCodec")}</div>
+                <div className="option-pills">
+                  {videoCodecOptions.map((opt, i) => (
+                    <button
+                      key={i}
+                      className={`option-pill ${i === videoCodecIdx ? "option-pill-active" : ""}`}
+                      onClick={() => setVideoCodecIdx(i)}
                     >
                       {opt.label}
                     </button>

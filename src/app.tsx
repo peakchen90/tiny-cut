@@ -27,6 +27,11 @@ export default function App() {
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [videoKey, setVideoKey] = useState(0);
   const [isMaximized, setIsMaximized] = useState(false);
+  const filePathRef = useRef(filePath);
+
+  useEffect(() => {
+    filePathRef.current = filePath;
+  }, [filePath]);
 
   const handleDurationChange = useCallback((dur: number) => {
     setDuration(dur);
@@ -288,11 +293,20 @@ export default function App() {
   }
 
   function loadFile(path: string) {
+    if (videoRef.current && !videoRef.current.paused) {
+      videoRef.current.pause();
+    }
     setFilePath(path);
     setCurrentTime(0);
     setDuration(0);
     setIsPlaying(false);
     setTrimRange({ startTime: 0, endTime: 0 });
+    setShowMenu(false);
+    setShowExportModal(false);
+    setShowInfoModal(false);
+    setExportStatus("idle");
+    setToast(null);
+    setDragOver(false);
     setVideoKey(prev => prev + 1);
   }
 
@@ -479,7 +493,11 @@ export default function App() {
           trimRange={trimRange}
           onClose={() => setShowExportModal(false)}
           onExportStart={handleExportStart}
-          onExportEnd={handleExportEnd}
+          onExportEnd={(status, message) => {
+            if (filePathRef.current === filePath) {
+              handleExportEnd(status, message);
+            }
+          }}
         />
       )}
 

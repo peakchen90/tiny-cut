@@ -41,8 +41,8 @@
   "video": {
     "videoInfo": "原影片資訊",
     "resolution": "解析度",
-    "fps": "影格率",
-    "format": "格式",
+    "fps": "影片影格率",
+    "format": "影片格式",
     "bitrate": "位元率",
     "loadingVideoInfo": "讀取影片資訊...",
     "fileName": "檔案名稱",

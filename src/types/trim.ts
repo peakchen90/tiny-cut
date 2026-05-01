@@ -3,13 +3,14 @@ export interface TrimRange {
   endTime: number;
 }
 
-export type ExportMode = "fast" | "precise";
+export type ExportMode = "fast" | "audio" | "precise";
 
 export type ExportStatus = "idle" | "exporting" | "success" | "error";
 
 export interface VideoInfo {
   width: number;
   height: number;
+  rotation: number;
   fps: number;
   bitrate: number;
   duration: number;

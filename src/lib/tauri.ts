@@ -20,11 +20,13 @@ export async function trimVideo(
   outputPath: string,
   startTime: number,
   endTime: number,
-  mode: "fast" | "precise",
+  mode: "fast" | "audio" | "precise",
   width?: number,
   height?: number,
   fps?: number,
-  bitrate?: number
+  bitrate?: number,
+  videoCodec?: string,
+  audioBitrate?: number
 ): Promise<TrimResult> {
   const startStr = formatSecondsToHms(startTime);
   const endStr = formatSecondsToHms(endTime);
@@ -38,6 +40,8 @@ export async function trimVideo(
     height: height || null,
     fps: fps || null,
     bitrate: bitrate || null,
+    videoCodec: videoCodec || null,
+    audioBitrate: audioBitrate || null,
   });
 }
 

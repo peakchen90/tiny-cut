@@ -41,8 +41,8 @@
   "video": {
     "videoInfo": "原视频信息",
     "resolution": "分辨率",
-    "fps": "帧率",
-    "format": "格式",
+    "fps": "视频帧率",
+    "format": "视频格式",
     "bitrate": "码率",
     "loadingVideoInfo": "读取视频信息...",
     "fileName": "文件名",

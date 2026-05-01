@@ -41,8 +41,8 @@
   "video": {
     "videoInfo": "Video Info",
     "resolution": "Resolution",
-    "fps": "FPS",
-    "format": "Format",
+    "fps": "Video FPS",
+    "format": "Video Format",
     "bitrate": "Bitrate",
     "loadingVideoInfo": "Loading video info...",
     "fileName": "File Name",

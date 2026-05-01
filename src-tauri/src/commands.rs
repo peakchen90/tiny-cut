@@ -87,6 +87,8 @@ pub async fn trim_video(
     height: Option<u32>,
     fps: Option<f64>,
     bitrate: Option<u64>,
+    video_codec: Option<String>,
+    audio_bitrate: Option<u64>,
 ) -> Result<TrimResult, String> {
     let input = PathBuf::from(&input_path);
     if !input.exists() {
@@ -120,6 +122,14 @@ pub async fn trim_video(
 
     let result = match mode.as_str() {
         "fast" => ffmpeg::trim_fast(&app, &input_path, &final_path, start_secs, duration)?,
+        "audio" => ffmpeg::trim_audio(
+            &app,
+            &input_path,
+            &final_path,
+            start_secs,
+            duration,
+            audio_bitrate,
+        )?,
         "precise" => ffmpeg::trim_precise(
             &app,
             &input_path,
@@ -130,6 +140,8 @@ pub async fn trim_video(
             height,
             fps,
             bitrate,
+            video_codec,
+            audio_bitrate,
         )?,
         _ => return Err(format!("Unknown mode: {}", mode)),
     };

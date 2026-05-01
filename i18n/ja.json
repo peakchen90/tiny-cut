@@ -41,8 +41,8 @@
   "video": {
     "videoInfo": "動画情報",
     "resolution": "解像度",
-    "fps": "FPS",
-    "format": "形式",
+    "fps": "動画FPS",
+    "format": "動画形式",
     "bitrate": "ビットレート",
     "loadingVideoInfo": "動画情報を読み込み中...",
     "fileName": "ファイル名",

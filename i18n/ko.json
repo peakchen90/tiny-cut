@@ -41,8 +41,8 @@
   "video": {
     "videoInfo": "비디오 정보",
     "resolution": "해상도",
-    "fps": "FPS",
-    "format": "형식",
+    "fps": "비디오 FPS",
+    "format": "비디오 형식",
     "bitrate": "비트레이트",
     "loadingVideoInfo": "비디오 정보 불러오는 중...",
     "fileName": "파일 이름",
