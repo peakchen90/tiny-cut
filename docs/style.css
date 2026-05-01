@@ -242,8 +242,13 @@ a:hover {
 }
 
 .download-icon {
-  font-size: 28px;
   margin-bottom: 10px;
+  color: var(--text-2);
+}
+
+.download-icon svg {
+  width: 32px;
+  height: 32px;
 }
 
 .download-card h3 {
@@ -296,17 +301,11 @@ a:hover {
   margin-top: 28px;
   border: 1px solid var(--border);
   border-radius: var(--radius);
-  padding: 16px 20px;
+  padding: 14px 20px;
   max-width: 580px;
   margin-left: auto;
   margin-right: auto;
-}
-
-.download-note summary {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--text-2);
-  cursor: pointer;
+  text-align: center;
 }
 
 .download-note code {
@@ -318,7 +317,7 @@ a:hover {
   font-size: 13px;
   font-family: "SF Mono", "Fira Code", Menlo, monospace;
   color: var(--accent);
-  margin-top: 8px;
+  margin-top: 6px;
   user-select: all;
 }
 
@@ -326,7 +325,6 @@ a:hover {
   font-size: 13px;
   color: var(--text-2);
   line-height: 1.6;
-  margin-top: 6px;
 }
 
 /* ============ Formats ============ */
