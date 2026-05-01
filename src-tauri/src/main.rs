@@ -95,7 +95,6 @@ fn main() {
             commands::trim_video,
             commands::get_video_info,
             commands::check_file_exists,
-            commands::estimate_bitrate,
             get_video_port
         ])
         .run(tauri::generate_context!())

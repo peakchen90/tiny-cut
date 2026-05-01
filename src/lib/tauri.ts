@@ -15,24 +15,6 @@ export async function checkFileExists(path: string): Promise<boolean> {
   return invoke("check_file_exists", { path });
 }
 
-export async function estimateBitrate(
-  inputPath: string,
-  startTime: number,
-  duration: number,
-  width?: number,
-  height?: number,
-  fps?: number
-): Promise<number> {
-  return invoke("estimate_bitrate", {
-    inputPath,
-    startTime,
-    duration,
-    width: width || null,
-    height: height || null,
-    fps: fps || null,
-  });
-}
-
 export async function trimVideo(
   inputPath: string,
   outputPath: string,
@@ -41,7 +23,8 @@ export async function trimVideo(
   mode: "fast" | "precise",
   width?: number,
   height?: number,
-  fps?: number
+  fps?: number,
+  bitrate?: number
 ): Promise<TrimResult> {
   const startStr = formatSecondsToHms(startTime);
   const endStr = formatSecondsToHms(endTime);
@@ -54,6 +37,7 @@ export async function trimVideo(
     width: width || null,
     height: height || null,
     fps: fps || null,
+    bitrate: bitrate || null,
   });
 }
 

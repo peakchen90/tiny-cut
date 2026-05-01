@@ -13,4 +13,12 @@ export interface VideoInfo {
   fps: number;
   bitrate: number;
   duration: number;
+  file_size: number;
+  file_path: string;
+  codec: string;
+  color_space: string;
+  audio_codec: string;
+  audio_sample_rate: number;
+  audio_channels: number;
+  audio_bitrate: number;
 }

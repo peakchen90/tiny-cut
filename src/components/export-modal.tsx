@@ -1,7 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import { save } from "@tauri-apps/plugin-dialog";
-import { getVideoInfo, trimVideo, estimateBitrate, checkFileExists } from "../lib/tauri";
-import { formatTimeShort } from "../lib/time";
+import { getVideoInfo, trimVideo, checkFileExists } from "../lib/tauri";
 import { t } from "../lib/i18n";
 import type { VideoInfo, ExportStatus, TrimRange } from "../types/trim";
 
@@ -168,13 +167,14 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
       return;
     }
 
-    // Set to 0 to show "-" while calculating
-    setEstimatedBitrate(0);
-
-    estimateBitrate(filePath, trimRange.startTime, trimDuration, res.width, res.height, f.value)
-      .then((bitrate) => setEstimatedBitrate(bitrate))
-      .catch(() => setEstimatedBitrate(videoInfo.bitrate || 5_000_000));
-  }, [filePath, videoInfo, resolutionIdx, fpsIdx, resolutionOptions, fpsOptions, trimRange.startTime, trimDuration]);
+    // Calculate bitrate based on resolution and fps ratio
+    const origPixels = videoInfo.width * videoInfo.height;
+    const newPixels = res.width * res.height;
+    const pixelScale = newPixels / origPixels;
+    const fpsScale = f.value / videoInfo.fps;
+    const estimated = Math.round(videoInfo.bitrate * pixelScale * fpsScale);
+    setEstimatedBitrate(estimated);
+  }, [videoInfo, resolutionIdx, fpsIdx, resolutionOptions, fpsOptions]);
 
   const isOriginal = resolutionIdx === 0 && fpsIdx === 0;
   const mode = isOriginal ? "fast" : "precise";
@@ -189,6 +189,16 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
     if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)}KB`;
     if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)}MB`;
     return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)}GB`;
+  };
+
+  const formatDuration = (seconds: number) => {
+    const h = Math.floor(seconds / 3600);
+    const m = Math.floor((seconds % 3600) / 60);
+    const s = Math.floor(seconds % 60);
+    const ms = Math.floor((seconds % 1) * 100);
+    if (h > 0) return `${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+    if (seconds < 1) return `0:${String(s).padStart(2, '0')}.${String(ms).padStart(2, '0')}`;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
   const getUniquePath = async (path: string): Promise<string> => {
@@ -219,6 +229,15 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
     const f = fpsOptions[fpsIdx];
 
     try {
+      // Calculate scaled bitrate based on resolution ratio
+      let bitrate: number | undefined;
+      if (!isOriginal && videoInfo) {
+        const origPixels = videoInfo.width * videoInfo.height;
+        const newPixels = res.width * res.height;
+        const scale = newPixels / origPixels;
+        bitrate = Math.round(videoInfo.bitrate * scale);
+      }
+
       const result = await trimVideo(
         filePath,
         finalPath,
@@ -227,7 +246,8 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
         mode,
         isOriginal ? undefined : res.width,
         isOriginal ? undefined : res.height,
-        isOriginal ? undefined : f.value
+        isOriginal ? undefined : f.value,
+        bitrate
       );
       onExportEnd(result.success ? "success" : "error");
     } catch (err) {
@@ -239,7 +259,7 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
   };
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
       <div className="modal">
         <div className="modal-header">
           <h2>{t("exportSettings")}</h2>
@@ -258,28 +278,6 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
             <div className="modal-error">{error}</div>
           ) : videoInfo && (
             <>
-              <div className="modal-section">
-                <div className="modal-section-title">{t("videoInfo")}</div>
-                <div className="video-info-grid">
-                  <div className="video-info-item">
-                    <span className="video-info-label">{t("resolution")}</span>
-                    <span className="video-info-value">{videoInfo.width}×{videoInfo.height}</span>
-                  </div>
-                  <div className="video-info-item">
-                    <span className="video-info-label">{t("fps")}</span>
-                    <span className="video-info-value">{videoInfo.fps.toFixed(2)} fps</span>
-                  </div>
-                  <div className="video-info-item">
-                    <span className="video-info-label">{t("bitrate")}</span>
-                    <span className="video-info-value">{videoInfo.bitrate > 0 ? `${(videoInfo.bitrate / 1000).toFixed(0)} kbps` : '-'}</span>
-                  </div>
-                  <div className="video-info-item">
-                    <span className="video-info-label">{t("duration")}</span>
-                    <span className="video-info-value">{formatTimeShort(videoInfo.duration)}</span>
-                  </div>
-                </div>
-              </div>
-
               <div className="modal-section">
                 <div className="modal-section-title">{t("exportPath")}</div>
                 <div className="output-path-row">
@@ -349,7 +347,7 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
             <span className="modal-footer-value">{formatSize(estimatedSize)}</span>
             <span className="modal-footer-sep">/</span>
             <span className="modal-footer-label">{t("trimDuration")}</span>
-            <span className="modal-footer-value">{formatTimeShort(trimDuration)}</span>
+            <span className="modal-footer-value">{formatDuration(trimDuration)}</span>
           </div>
           <div className="modal-footer-right">
             <button className="btn-export" onClick={handleExport} disabled={loading || exporting || !outputPath}>

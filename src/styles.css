@@ -256,7 +256,7 @@ body::before {
 .trimmer {
   position: relative;
   height: 52px;
-  border-radius: 8px;
+  border-radius: 0;
   overflow: visible;
   touch-action: none;
 }
@@ -266,7 +266,7 @@ body::before {
   inset: 0;
   display: flex;
   background: #2a2a2c;
-  border-radius: 8px;
+  border-radius: 0;
   overflow: hidden;
 }
 
@@ -579,6 +579,51 @@ body::before {
   font-weight: 500;
   color: rgba(255, 255, 255, 0.4);
   margin-bottom: 8px;
+}
+
+/* ── Modal Narrow ── */
+.modal-narrow {
+  width: 400px;
+}
+
+/* ── Info Table ── */
+.info-table {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  padding: 8px 0;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+}
+
+.info-row:last-child {
+  border-bottom: none;
+}
+
+.info-label {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  flex-shrink: 0;
+  width: 100px;
+}
+
+.info-value {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.9);
+  text-align: right;
+  flex: 1;
+  word-break: break-all;
+  white-space: normal;
+}
+
+.info-value-path {
+  word-break: break-all;
+  overflow-wrap: break-word;
 }
 
 /* ── Option Group ── */

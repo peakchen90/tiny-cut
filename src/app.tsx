@@ -5,6 +5,7 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import VideoPlayer from "./components/video-player";
 import Timeline from "./components/timeline";
 import ExportModal from "./components/export-modal";
+import { InfoModal } from "./components/info-modal";
 import { formatTimeShort } from "./lib/time";
 import { t } from "./lib/i18n";
 import type { TrimRange, ExportStatus } from "./types/trim";
@@ -18,6 +19,7 @@ export default function App() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const [showInfoModal, setShowInfoModal] = useState(false);
   const [exportStatus, setExportStatus] = useState<ExportStatus>("idle");
   const [toast, setToast] = useState<string | null>(null);
   const [videoKey, setVideoKey] = useState(0);
@@ -324,6 +326,14 @@ export default function App() {
                   </svg>
                   {t("newProject")}
                 </button>
+                <button className="more-menu-item" onClick={() => { setShowInfoModal(true); setShowMenu(false); }}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
+                    <circle cx="12" cy="12" r="10" />
+                    <line x1="12" y1="16" x2="12" y2="12" />
+                    <line x1="12" y1="8" x2="12.01" y2="8" />
+                  </svg>
+                  {t("info")}
+                </button>
                 <button className="more-menu-item" onClick={handleExportClick} disabled={exportStatus === "exporting"}>
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                     <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
@@ -345,6 +355,13 @@ export default function App() {
           onClose={() => setShowExportModal(false)}
           onExportStart={handleExportStart}
           onExportEnd={handleExportEnd}
+        />
+      )}
+
+      {showInfoModal && (
+        <InfoModal
+          filePath={filePath}
+          onClose={() => setShowInfoModal(false)}
         />
       )}
 

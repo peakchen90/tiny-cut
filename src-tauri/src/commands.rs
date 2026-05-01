@@ -63,23 +63,6 @@ pub async fn check_file_exists(path: String) -> Result<bool, String> {
 }
 
 #[command]
-pub async fn estimate_bitrate(
-    app: AppHandle,
-    input_path: String,
-    start_time: f64,
-    duration: f64,
-    width: Option<u32>,
-    height: Option<u32>,
-    fps: Option<f64>,
-) -> Result<u64, String> {
-    let input = PathBuf::from(&input_path);
-    if !input.exists() {
-        return Err("Input file does not exist".into());
-    }
-    ffmpeg::estimate_bitrate(&app, &input_path, start_time, duration, width, height, fps)
-}
-
-#[command]
 pub async fn get_video_info(
     app: AppHandle,
     input_path: String,
@@ -103,6 +86,7 @@ pub async fn trim_video(
     width: Option<u32>,
     height: Option<u32>,
     fps: Option<f64>,
+    bitrate: Option<u64>,
 ) -> Result<TrimResult, String> {
     let input = PathBuf::from(&input_path);
     if !input.exists() {
@@ -137,6 +121,7 @@ pub async fn trim_video(
             width,
             height,
             fps,
+            bitrate,
         )?,
         _ => return Err(format!("Unknown mode: {}", mode)),
     };
