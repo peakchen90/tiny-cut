@@ -65,32 +65,52 @@
 
   // ---- Download links ----
 
+  var CACHE_KEY = "tinycut-release";
+  var CACHE_TTL = 5 * 60 * 1000;
+
   function findAsset(assets, test) {
     if (!assets) return null;
     for (var i = 0; i < assets.length; i++) {
-      if (test(assets[i].name)) {
-        return assets[i];
-      }
+      if (test(assets[i].name)) return assets[i];
     }
     return null;
   }
 
-  function isDmg(name) {
-    return /\.dmg$/i.test(name);
+  function getCachedLinks() {
+    try {
+      var raw = localStorage.getItem(CACHE_KEY);
+      if (!raw) return null;
+      var cache = JSON.parse(raw);
+      if (Date.now() - cache.t > CACHE_TTL) return null;
+      return cache.d;
+    } catch (e) {
+      return null;
+    }
   }
 
-  function isExe(name) {
-    return /\.exe$/i.test(name);
+  function setCache(arm, x64, win) {
+    try {
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
+        t: Date.now(),
+        d: { arm: arm, x64: x64, win: win }
+      }));
+    } catch (e) {}
   }
 
-  function setDownloadLinks() {
+  function applyLinks(arm, x64, win) {
     var btnArm = document.getElementById("dl-mac-arm");
     var btnX64 = document.getElementById("dl-mac-x64");
     var btnWin = document.getElementById("dl-win");
+    if (btnArm) btnArm.href = arm;
+    if (btnX64) btnX64.href = x64;
+    if (btnWin) btnWin.href = win;
+  }
 
-    var btns = [btnArm, btnX64, btnWin];
-    for (var i = 0; i < btns.length; i++) {
-      if (btns[i]) btns[i].setAttribute("disabled", "disabled");
+  function setDownloadLinks() {
+    var cached = getCachedLinks();
+    if (cached) {
+      applyLinks(cached.arm, cached.x64, cached.win);
+      return;
     }
 
     fetch(API_URL)
@@ -100,58 +120,18 @@
       })
       .then(function (data) {
         var assets = data.assets || [];
-        var tag = data.tag_name || "";
+        var arm = findAsset(assets, function (n) { return /\.dmg$/i.test(n) && /aarch64|arm64/i.test(n); });
+        var x64 = findAsset(assets, function (n) { return /\.dmg$/i.test(n) && !/aarch64|arm64/i.test(n); });
+        var win = findAsset(assets, function (n) { return /\.exe$/i.test(n); });
 
-        var armAsset = findAsset(assets, function (n) {
-          return isDmg(n) && /aarch64|arm64/i.test(n);
-        });
-        var x64Asset = findAsset(assets, function (n) {
-          return isDmg(n) && !/aarch64|arm64/i.test(n);
-        });
-        var winAsset = findAsset(assets, function (n) {
-          return isExe(n);
-        });
+        var armUrl = arm ? arm.browser_download_url : RELEASES_URL;
+        var x64Url = x64 ? x64.browser_download_url : RELEASES_URL;
+        var winUrl = win ? win.browser_download_url : RELEASES_URL;
 
-        if (armAsset && btnArm) {
-          btnArm.href = armAsset.browser_download_url;
-          btnArm.removeAttribute("disabled");
-        } else if (btnArm) {
-          btnArm.href = RELEASES_URL;
-          btnArm.removeAttribute("disabled");
-        }
-
-        if (x64Asset && btnX64) {
-          btnX64.href = x64Asset.browser_download_url;
-          btnX64.removeAttribute("disabled");
-        } else if (btnX64) {
-          btnX64.href = RELEASES_URL;
-          btnX64.removeAttribute("disabled");
-        }
-
-        if (winAsset && btnWin) {
-          btnWin.href = winAsset.browser_download_url;
-          btnWin.removeAttribute("disabled");
-        } else if (btnWin) {
-          btnWin.href = RELEASES_URL;
-          btnWin.removeAttribute("disabled");
-        }
-
-        // Update version display if tag is available
-        if (tag) {
-          var version = tag.replace(/^v/, "");
-          document.title = document.title + " " + version;
-        }
+        applyLinks(armUrl, x64Url, winUrl);
+        setCache(armUrl, x64Url, winUrl);
       })
-      .catch(function () {
-        // Fallback: link to releases page
-        var fallbackBtns = [btnArm, btnX64, btnWin];
-        for (var i = 0; i < fallbackBtns.length; i++) {
-          if (fallbackBtns[i]) {
-            fallbackBtns[i].href = RELEASES_URL;
-            fallbackBtns[i].removeAttribute("disabled");
-          }
-        }
-      });
+      .catch(function () {});
   }
 
   // ---- Init ----
