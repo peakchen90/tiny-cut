@@ -132,15 +132,9 @@ export default function Timeline({
         return;
       }
 
-      const getClampMargin = () => {
-        const rect = trackRef.current?.getBoundingClientRect();
-        return rect && rect.width > 0 ? (2 / rect.width) * duration : 0;
-      };
-
       if (which === "playhead") {
         onPlayheadDragStart();
-        const m = getClampMargin();
-        const clamp = (t: number) => Math.max(trimRange.startTime + m, Math.min(trimRange.endTime - m, t));
+        const clamp = (t: number) => Math.max(trimRange.startTime, Math.min(trimRange.endTime, t));
 
         let startX = e.clientX;
         let startTime = clamp(getTimeFromX(e.clientX));
@@ -174,8 +168,7 @@ export default function Timeline({
       }
 
       // Click on track — seek within trim range
-      const m = getClampMargin();
-      const clamp = (t: number) => Math.max(trimRange.startTime + m, Math.min(trimRange.endTime - m, t));
+      const clamp = (t: number) => Math.max(trimRange.startTime, Math.min(trimRange.endTime, t));
 
       let startX = e.clientX;
       let startTime = clamp(getTimeFromX(e.clientX));
