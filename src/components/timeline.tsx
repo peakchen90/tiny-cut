@@ -40,6 +40,15 @@ export default function Timeline({
     [duration]
   );
 
+  const getPreciseDragStep = useCallback((): number => {
+    const el = trackRef.current;
+    if (!el || duration <= 0) return 0.01;
+    const rect = el.getBoundingClientRect();
+    if (rect.width <= 0) return 0.01;
+    // 短视频下普通拖动可能比 0.01 秒/像素更慢，此时优先使用更精细的频率。
+    return Math.min(0.01, duration / rect.width);
+  }, [duration]);
+
   const leftPct = (trimRange.startTime / duration) * 100;
   const rightPct = (trimRange.endTime / duration) * 100;
   const playheadPct = (currentTime / duration) * 100;
@@ -76,7 +85,7 @@ export default function Timeline({
           prevShift = ev.shiftKey;
           if (ev.shiftKey) {
             const dx = ev.clientX - startX;
-            finalTime = Math.max(0, Math.min(startTime + dx * 0.01, trimRange.endTime - 0.05));
+            finalTime = Math.max(0, Math.min(startTime + dx * getPreciseDragStep(), trimRange.endTime - 0.05));
           } else {
             const t = getTimeFromX(ev.clientX);
             finalTime = Math.max(0, Math.min(t, trimRange.endTime - 0.05));
@@ -117,7 +126,7 @@ export default function Timeline({
           prevShift = ev.shiftKey;
           if (ev.shiftKey) {
             const dx = ev.clientX - startX;
-            finalTime = Math.min(duration, Math.max(startTime + dx * 0.01, trimRange.startTime + 0.05));
+            finalTime = Math.min(duration, Math.max(startTime + dx * getPreciseDragStep(), trimRange.startTime + 0.05));
           } else {
             const t = getTimeFromX(ev.clientX);
             finalTime = Math.min(duration, Math.max(t, trimRange.startTime + 0.05));
@@ -157,7 +166,7 @@ export default function Timeline({
           prevShift = ev.shiftKey;
           if (ev.shiftKey) {
             const dx = ev.clientX - startX;
-            onSeek(clamp(startTime + dx * 0.01));
+            onSeek(clamp(startTime + dx * getPreciseDragStep()));
           } else {
             onSeek(clamp(getTimeFromX(ev.clientX)));
           }
@@ -191,7 +200,7 @@ export default function Timeline({
         prevShift = ev.shiftKey;
         if (ev.shiftKey) {
           const dx = ev.clientX - startX;
-          onSeek(clamp(startTime + dx * 0.01));
+          onSeek(clamp(startTime + dx * getPreciseDragStep()));
         } else {
           onSeek(clamp(getTimeFromX(ev.clientX)));
         }
@@ -199,7 +208,7 @@ export default function Timeline({
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
     },
-    [getTimeFromX, trimRange, duration, onRangeChange, onSeek, onPlayheadDragStart, leftPct, rightPct]
+    [getTimeFromX, getPreciseDragStep, trimRange, duration, onRangeChange, onSeek, onPlayheadDragStart, leftPct, rightPct]
   );
 
   if (duration <= 0) return null;
