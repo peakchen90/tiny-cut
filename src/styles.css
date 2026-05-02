@@ -417,7 +417,7 @@ body::before {
   top: -1px;
   bottom: -1px;
   width: 4px;
-  z-index: 4;
+  z-index: 6;
   cursor: ew-resize;
   transform: translateX(-2px);
 }
