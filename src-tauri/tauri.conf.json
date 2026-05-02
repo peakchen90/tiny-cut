@@ -15,6 +15,7 @@
         "title": "",
         "width": 900,
         "height": 600,
+        "center": true,
         "minWidth": 640,
         "minHeight": 400,
         "resizable": true,

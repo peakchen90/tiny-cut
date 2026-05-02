@@ -6,16 +6,25 @@ mod ffmpeg;
 mod video_server;
 
 use std::{
+    fs,
+    path::PathBuf,
     process::Command,
     sync::atomic::{AtomicU16, Ordering},
 };
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem, Submenu},
-    Emitter, Manager,
+    Emitter, LogicalSize, Manager, PhysicalSize, WebviewWindow, WindowEvent,
 };
 
 static VIDEO_PORT: AtomicU16 = AtomicU16::new(0);
 const GITHUB_URL: &str = "https://github.com/peakchen90/tiny-cut";
+const WINDOW_SIZE_CACHE_FILE: &str = "window-size.json";
+
+#[derive(serde::Deserialize, serde::Serialize)]
+struct WindowSizeCache {
+    width: u32,
+    height: u32,
+}
 
 struct MenuLabels {
     file: String,
@@ -85,6 +94,60 @@ fn system_menu_lang() -> String {
     std::env::var("LC_ALL")
         .or_else(|_| std::env::var("LANG"))
         .unwrap_or_default()
+}
+
+fn window_size_cache_path(app: &tauri::AppHandle) -> Option<PathBuf> {
+    app.path()
+        .app_cache_dir()
+        .ok()
+        .map(|dir| dir.join(WINDOW_SIZE_CACHE_FILE))
+}
+
+fn read_window_size_cache(app: &tauri::AppHandle) -> Option<WindowSizeCache> {
+    let path = window_size_cache_path(app)?;
+    let cache = fs::read_to_string(path).ok()?;
+    let size = serde_json::from_str::<WindowSizeCache>(&cache).ok()?;
+    if size.width >= 640 && size.height >= 400 {
+        Some(size)
+    } else {
+        None
+    }
+}
+
+fn write_window_size_cache(app: &tauri::AppHandle, size: &WindowSizeCache) {
+    let Some(path) = window_size_cache_path(app) else {
+        return;
+    };
+    let Some(parent) = path.parent() else {
+        return;
+    };
+    let Ok(cache) = serde_json::to_string(size) else {
+        return;
+    };
+
+    let _ = fs::create_dir_all(parent);
+    let _ = fs::write(path, cache);
+}
+
+fn save_window_size_cache(app: &tauri::AppHandle, window: &WebviewWindow, size: PhysicalSize<u32>) {
+    // 最大化和全屏都不写入缓存，避免下次启动恢复成异常的大窗口。
+    if window.is_fullscreen().unwrap_or(false) || window.is_maximized().unwrap_or(false) {
+        return;
+    }
+
+    let scale_factor = window.scale_factor().unwrap_or(1.0);
+    let logical_size = size.to_logical::<u32>(scale_factor);
+    if logical_size.width < 640 || logical_size.height < 400 {
+        return;
+    }
+
+    write_window_size_cache(
+        app,
+        &WindowSizeCache {
+            width: logical_size.width,
+            height: logical_size.height,
+        },
+    );
 }
 
 fn build_app_menu<R: tauri::Runtime>(
@@ -196,6 +259,16 @@ fn main() {
 
     let builder = tauri::Builder::default().plugin(tauri_plugin_dialog::init());
 
+    #[cfg(target_os = "windows")]
+    let builder = builder.plugin(tauri_plugin_single_instance::init(|app, _argv, _cwd| {
+        if let Some(window) = app.get_webview_window("main") {
+            let _ = window.show();
+            let _ = window.unminimize();
+            let _ = window.center();
+            let _ = window.set_focus();
+        }
+    }));
+
     #[cfg(target_os = "macos")]
     let builder = builder
         .menu(|handle| build_app_menu(handle, &system_menu_lang(), false))
@@ -244,6 +317,35 @@ fn main() {
                 {
                     window.set_decorations(false)?;
                 }
+
+                if let Some(size) = read_window_size_cache(app.handle()) {
+                    window.set_size(LogicalSize::new(size.width, size.height))?;
+                    // 手动居中：根据显示器尺寸计算窗口位置
+                    if let Some(monitor) = window.current_monitor().unwrap_or(None) {
+                        let screen_size = monitor.size();
+                        let scale = monitor.scale_factor();
+                        let x = (screen_size.width as f64 / scale - size.width as f64) / 2.0;
+                        let y = (screen_size.height as f64 / scale - size.height as f64) / 2.0;
+                        window.set_position(tauri::PhysicalPosition::new(
+                            (x * scale) as i32,
+                            (y * scale) as i32,
+                        ))?;
+                    }
+                } else {
+                    window.center()?;
+                }
+
+                let app_handle = app.handle().clone();
+                let resize_window = window.clone();
+                window.on_window_event(move |event| match event {
+                    WindowEvent::Resized(size) => {
+                        save_window_size_cache(&app_handle, &resize_window, *size);
+                    }
+                    WindowEvent::ScaleFactorChanged { new_inner_size, .. } => {
+                        save_window_size_cache(&app_handle, &resize_window, *new_inner_size);
+                    }
+                    _ => {}
+                });
             }
             Ok(())
         })
