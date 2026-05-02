@@ -59,7 +59,16 @@ export default function Timeline({
         let startTime = trimRange.startTime;
         let prevShift = e.shiftKey;
         let finalTime = startTime;
+        const onUp = () => {
+          window.removeEventListener("mousemove", onMove);
+          window.removeEventListener("mouseup", onUp);
+          setDragging(null);
+        };
         const onMove = (ev: MouseEvent) => {
+          if (!ev.shiftKey && prevShift) {
+            onUp();
+            return;
+          }
           if (ev.shiftKey && !prevShift) {
             startX = ev.clientX;
             startTime = finalTime;
@@ -77,11 +86,6 @@ export default function Timeline({
           setTooltipTime(finalTime);
           setTooltipPct((finalTime / duration) * 100);
         };
-        const onUp = () => {
-          window.removeEventListener("mousemove", onMove);
-          window.removeEventListener("mouseup", onUp);
-          setDragging(null);
-        };
         window.addEventListener("mousemove", onMove);
         window.addEventListener("mouseup", onUp);
         return;
@@ -96,7 +100,16 @@ export default function Timeline({
         let startTime = trimRange.endTime;
         let prevShift = e.shiftKey;
         let finalTime = startTime;
+        const onUp = () => {
+          window.removeEventListener("mousemove", onMove);
+          window.removeEventListener("mouseup", onUp);
+          setDragging(null);
+        };
         const onMove = (ev: MouseEvent) => {
+          if (!ev.shiftKey && prevShift) {
+            onUp();
+            return;
+          }
           if (ev.shiftKey && !prevShift) {
             startX = ev.clientX;
             startTime = finalTime;
@@ -113,11 +126,6 @@ export default function Timeline({
           onSeek(finalTime);
           setTooltipTime(finalTime);
           setTooltipPct((finalTime / duration) * 100);
-        };
-        const onUp = () => {
-          window.removeEventListener("mousemove", onMove);
-          window.removeEventListener("mouseup", onUp);
-          setDragging(null);
         };
         window.addEventListener("mousemove", onMove);
         window.addEventListener("mouseup", onUp);
@@ -139,7 +147,15 @@ export default function Timeline({
         let prevShift = e.shiftKey;
         onSeek(startTime);
 
+        const onUp = () => {
+          window.removeEventListener("mousemove", onMove);
+          window.removeEventListener("mouseup", onUp);
+        };
         const onMove = (ev: MouseEvent) => {
+          if (!ev.shiftKey && prevShift) {
+            onUp();
+            return;
+          }
           if (ev.shiftKey && !prevShift) {
             startX = ev.clientX;
             startTime = clamp(getTimeFromX(ev.clientX));
@@ -152,10 +168,6 @@ export default function Timeline({
             onSeek(clamp(getTimeFromX(ev.clientX)));
           }
         };
-        const onUp = () => {
-          window.removeEventListener("mousemove", onMove);
-          window.removeEventListener("mouseup", onUp);
-        };
         window.addEventListener("mousemove", onMove);
         window.addEventListener("mouseup", onUp);
         return;
@@ -164,11 +176,32 @@ export default function Timeline({
       // Click on track — seek within trim range
       const m = getClampMargin();
       const clamp = (t: number) => Math.max(trimRange.startTime + m, Math.min(trimRange.endTime - m, t));
-      onSeek(clamp(getTimeFromX(e.clientX)));
-      const onMove = (ev: MouseEvent) => onSeek(clamp(getTimeFromX(ev.clientX)));
+
+      let startX = e.clientX;
+      let startTime = clamp(getTimeFromX(e.clientX));
+      let prevShift = e.shiftKey;
+      onSeek(startTime);
+
       const onUp = () => {
         window.removeEventListener("mousemove", onMove);
         window.removeEventListener("mouseup", onUp);
+      };
+      const onMove = (ev: MouseEvent) => {
+        if (!ev.shiftKey && prevShift) {
+          onUp();
+          return;
+        }
+        if (ev.shiftKey && !prevShift) {
+          startX = ev.clientX;
+          startTime = clamp(getTimeFromX(ev.clientX));
+        }
+        prevShift = ev.shiftKey;
+        if (ev.shiftKey) {
+          const dx = ev.clientX - startX;
+          onSeek(clamp(startTime + dx * 0.01));
+        } else {
+          onSeek(clamp(getTimeFromX(ev.clientX)));
+        }
       };
       window.addEventListener("mousemove", onMove);
       window.addEventListener("mouseup", onUp);
