@@ -55,13 +55,13 @@
     <div class="features-grid">
       <div class="feature-card">
         <div class="feature-icon">&#9889;</div>
-        <h3 data-en="Fast Trim" data-zh="快速剪切"></h3>
-        <p data-en="No re-encoding needed. Cut your videos instantly while preserving the original quality." data-zh="无需重新编码，瞬间完成剪切，完整保留原始画质。"></p>
+        <h3 data-en="Consistent Export" data-zh="统一导出"></h3>
+        <p data-en="Export videos as H.264 or H.265 for predictable playback compatibility." data-zh="将视频导出为 H.264 或 H.265，播放兼容性更可控。"></p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">&#127919;</div>
         <h3 data-en="Precise Trim" data-zh="精准剪切"></h3>
-        <p data-en="Frame-accurate cutting with re-encoding for when precision matters." data-zh="逐帧精确裁剪，重新编码确保每一帧都精准到位。"></p>
+        <p data-en="Frame-accurate cutting with configurable export encoding." data-zh="逐帧精确裁剪，并支持导出编码配置。"></p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">&#128065;</div>
@@ -81,7 +81,7 @@
       <div class="feature-card">
         <div class="feature-icon">&#128293;</div>
         <h3 data-en="GPU Acceleration" data-zh="GPU 加速"></h3>
-        <p data-en="Hardware encoding support: VideoToolbox on MacOS, NVENC on Windows." data-zh="硬件编码加速：MacOS 使用 VideoToolbox，Windows 使用 NVENC。"></p>
+        <p data-en="Hardware encoding support for Apple, NVIDIA, Intel, and AMD platforms." data-zh="支持 Apple、NVIDIA、Intel、AMD 平台的硬件编码。"></p>
       </div>
       <div class="feature-card">
         <div class="feature-icon">&#128274;</div>
@@ -139,6 +139,60 @@
       <h4 class="download-note-title" data-en="MacOS Install Tip" data-zh="MacOS 安装提示"></h4>
       <p data-en="If the app shows &quot;TinyCut is damaged&quot;, open Terminal and run:" data-zh="若提示 &quot;TinyCut 已损坏&quot;，请在终端执行："></p>
       <code>xattr -cr /Applications/TinyCut.app</code>
+    </div>
+  </section>
+
+  <!-- GPU Acceleration -->
+  <section class="gpu">
+    <h2 class="section-title" data-en="GPU Acceleration" data-zh="GPU 加速"></h2>
+    <p class="section-desc" data-en="Exports are encoded as H.264 or H.265, using GPU encoders when available." data-zh="导出视频会编码为 H.264 或 H.265，并在可用时使用 GPU 编码器。"></p>
+    <div class="gpu-content">
+      <div class="gpu-block">
+        <h3 data-en="Supported Encoders" data-zh="支持的编码器"></h3>
+        <div class="gpu-table-wrap">
+          <table class="gpu-table">
+            <thead>
+              <tr>
+                <th data-en="Platform" data-zh="平台"></th>
+                <th data-en="Hardware" data-zh="硬件"></th>
+                <th>H.264</th>
+                <th>H.265 / HEVC</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>MacOS</td>
+                <td>Apple VideoToolbox</td>
+                <td><code>h264_videotoolbox</code></td>
+                <td><code>hevc_videotoolbox</code></td>
+              </tr>
+              <tr>
+                <td>Windows</td>
+                <td>NVIDIA NVENC</td>
+                <td><code>h264_nvenc</code></td>
+                <td><code>hevc_nvenc</code></td>
+              </tr>
+              <tr>
+                <td>Windows</td>
+                <td>Intel Quick Sync</td>
+                <td><code>h264_qsv</code></td>
+                <td><code>hevc_qsv</code></td>
+              </tr>
+              <tr>
+                <td>Windows</td>
+                <td>AMD AMF</td>
+                <td><code>h264_amf</code></td>
+                <td><code>hevc_amf</code></td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+      <div class="gpu-block">
+        <h3 data-en="Detection Cache" data-zh="探测缓存"></h3>
+        <p data-en="TinyCut verifies encoder availability before GPU encoding, then caches the result locally for 24 hours by codec." data-zh="TinyCut 会在使用 GPU 编码前验证编码器是否可用，并按编码类型在本地缓存 24 小时。"></p>
+        <p data-en="If hardware encoding is unavailable, H.264/H.265 fall back to CPU encoding." data-zh="如果没有可用硬件编码器，H.264/H.265 会回退到 CPU 编码。"></p>
+      </div>
     </div>
   </section>
 

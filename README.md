@@ -20,11 +20,11 @@ English | **[中文](README-ZH.md)**
 ## Features
 
 - **Simple & Intuitive** — Clean interface focused on the essentials
-- **Fast Trim** — No re-encoding, preserving original quality
-- **Precise Trim** — Frame-accurate cutting with re-encoding
+- **Consistent Export** — Export videos as H.264 or H.265
+- **Precise Trim** — Frame-accurate cutting with configurable encoding
 - **Drag & Drop** — Simply drag videos into the app
 - **Built-in FFmpeg** — No external dependencies required
-- **GPU Acceleration** — Hardware encoding support (VideoToolbox on macOS, NVENC on Windows)
+- **GPU Acceleration** — Hardware encoding support for Apple, NVIDIA, Intel, and AMD platforms
 - **Privacy First** — All processing happens locally on your machine
 - **Cross Platform** — Works on macOS (Intel & Apple Silicon) and Windows
 
@@ -43,6 +43,25 @@ TinyCut supports the following video formats:
 | WMV | `.wmv` |
 | M4V | `.m4v` |
 | 3GP | `.3gp` |
+
+## GPU Acceleration
+
+TinyCut exports video as H.264 or H.265. When hardware encoding is available, TinyCut uses the matching GPU encoder and falls back to CPU encoding if needed.
+
+### Supported Encoders
+
+| Platform | Hardware | H.264 | H.265 / HEVC |
+|----------|----------|-------|--------------|
+| macOS | Apple VideoToolbox | `h264_videotoolbox` | `hevc_videotoolbox` |
+| Windows | NVIDIA NVENC | `h264_nvenc` | `hevc_nvenc` |
+| Windows | Intel Quick Sync | `h264_qsv` | `hevc_qsv` |
+| Windows | AMD AMF | `h264_amf` | `hevc_amf` |
+
+### Detection Cache
+
+Before GPU encoding is used, TinyCut verifies that the encoder works on the current device. The result is cached locally for 24 hours by codec (`h264`, `h265`), so repeated exports do not re-run hardware detection every time.
+
+If no hardware encoder is available, TinyCut falls back to CPU encoding for H.264/H.265.
 
 ## Download
 
@@ -129,7 +148,7 @@ The built application will be in `src-tauri/target/release/bundle/`.
 | Frontend | React, TypeScript, Vite |
 | Backend | Rust, Tauri v2 |
 | Video Processing | FFmpeg (bundled) |
-| GPU Acceleration | VideoToolbox (macOS), NVENC (Windows) |
+| GPU Acceleration | VideoToolbox, NVENC, QSV, AMF |
 
 ## Project Structure
 

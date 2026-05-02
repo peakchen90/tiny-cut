@@ -239,6 +239,83 @@ a:hover {
   line-height: 1.5;
 }
 
+/* ============ GPU ============ */
+.gpu {
+  padding: 56px 20px;
+  background: var(--bg-alt);
+}
+
+.gpu-content {
+  max-width: var(--max-w);
+  margin: 0 auto;
+}
+
+.gpu-block + .gpu-block {
+  margin-top: 28px;
+}
+
+.gpu-block h3 {
+  font-size: 15px;
+  font-weight: 700;
+  margin-bottom: 12px;
+}
+
+.gpu-block p {
+  color: var(--text-2);
+  font-size: 14px;
+  line-height: 1.7;
+  max-width: 720px;
+}
+
+.gpu-block p + p {
+  margin-top: 8px;
+}
+
+.gpu-table-wrap {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  overflow: hidden;
+  background: var(--bg);
+}
+
+.gpu-table {
+  width: 100%;
+  min-width: 640px;
+  border-collapse: separate;
+  border-spacing: 0;
+  table-layout: fixed;
+}
+
+.gpu-table th,
+.gpu-table td {
+  padding: 12px 14px;
+  font-size: 13px;
+  text-align: left;
+  color: var(--text-2);
+}
+
+.gpu-table th {
+  background: #f9fafb;
+  color: var(--text);
+  font-weight: 700;
+}
+
+.gpu-table td {
+  border-top: 1px solid var(--border);
+}
+
+.gpu-table th + th,
+.gpu-table td + td {
+  border-left: 1px solid #edf0f5;
+}
+
+.gpu-table code {
+  font-family: "SF Mono", "Fira Code", Menlo, monospace;
+  font-size: 12px;
+  color: var(--text-2);
+  white-space: nowrap;
+}
+
 /* ============ Download ============ */
 .download {
   padding: 56px 20px;
@@ -253,6 +330,7 @@ a:hover {
 }
 
 .download-card {
+  background: var(--bg);
   border: 1px solid var(--border);
   border-radius: var(--radius);
   padding: 28px 20px;
@@ -378,7 +456,7 @@ a:hover {
 /* ============ Formats ============ */
 .formats {
   padding: 56px 20px;
-  background: var(--bg-alt);
+  background: var(--bg);
 }
 
 .formats-tags {
@@ -447,6 +525,10 @@ a:hover {
   .download-grid {
     grid-template-columns: 1fr;
     max-width: 320px;
+  }
+
+  .gpu-table-wrap {
+    overflow-x: auto;
   }
 }
 

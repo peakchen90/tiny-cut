@@ -121,7 +121,14 @@ pub async fn trim_video(
     let duration = end_secs - start_secs;
 
     let result = match mode.as_str() {
-        "fast" => ffmpeg::trim_fast(&app, &input_path, &final_path, start_secs, duration)?,
+        "fast" => ffmpeg::trim_fast(
+            &app,
+            &input_path,
+            &final_path,
+            start_secs,
+            duration,
+            video_codec.as_deref(),
+        )?,
         "audio" => ffmpeg::trim_audio(
             &app,
             &input_path,
@@ -129,6 +136,7 @@ pub async fn trim_video(
             start_secs,
             duration,
             audio_bitrate,
+            video_codec.as_deref(),
         )?,
         "precise" => ffmpeg::trim_precise(
             &app,

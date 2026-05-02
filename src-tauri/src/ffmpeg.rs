@@ -1,6 +1,7 @@
-use serde::Serialize;
+use serde::{Deserialize, Serialize};
 use std::path::PathBuf;
 use std::process::Command;
+use std::time::{SystemTime, UNIX_EPOCH};
 use tauri::Manager;
 
 #[cfg(target_os = "windows")]
@@ -8,6 +9,7 @@ use std::os::windows::process::CommandExt;
 
 #[cfg(target_os = "windows")]
 const CREATE_NO_WINDOW: u32 = 0x08000000;
+const ENCODER_CACHE_TTL_SECS: u64 = 24 * 60 * 60;
 
 fn create_command(program: &str) -> Command {
     #[cfg(target_os = "windows")]
@@ -44,6 +46,16 @@ pub struct VideoInfo {
     pub audio_sample_rate: u32,
     pub audio_channels: u32,
     pub audio_bitrate: u64,
+}
+
+struct VideoEncoder {
+    name: String,
+}
+
+#[derive(Deserialize, Serialize)]
+struct VideoEncoderCache {
+    encoder: String,
+    created_at: u64,
 }
 
 fn ffmpeg_path(app: &tauri::AppHandle) -> Result<String, String> {
@@ -144,64 +156,135 @@ fn normalize_rotation(rotation: f64) -> i32 {
     ((rounded % 360) + 360) % 360
 }
 
-fn detect_hw_encoder(ffmpeg: &str, video_codec: Option<&str>) -> &'static str {
-    let is_h265 = video_codec
-        .map(|codec| {
-            let lower = codec.to_lowercase();
-            lower.contains("h265") || lower.contains("h.265") || lower.contains("hevc")
-        })
-        .unwrap_or(false);
-    let encoder = if is_h265 {
+fn detect_hw_encoder(
+    app: &tauri::AppHandle,
+    ffmpeg: &str,
+    video_codec: Option<&str>,
+) -> Result<VideoEncoder, String> {
+    let codec = video_codec.unwrap_or("").to_lowercase();
+    let is_h265 = codec.contains("h265") || codec.contains("h.265") || codec.contains("hevc");
+    let cache_key = if is_h265 { "h265" } else { "h264" };
+
+    if let Some(encoder) = read_encoder_cache(app, cache_key) {
+        return Ok(encoder);
+    }
+
+    let fallback = if is_h265 { "libx265" } else { "libx264" };
+    let encoders: &[&str] = if is_h265 {
         if cfg!(target_os = "macos") {
-            "hevc_videotoolbox"
+            &["hevc_videotoolbox"]
         } else if cfg!(target_os = "windows") {
-            "hevc_nvenc"
+            &["hevc_nvenc", "hevc_qsv", "hevc_amf"]
         } else {
-            "libx265"
+            &[]
         }
     } else if cfg!(target_os = "macos") {
-        "h264_videotoolbox"
+        &["h264_videotoolbox"]
     } else if cfg!(target_os = "windows") {
-        "h264_nvenc"
+        &["h264_nvenc", "h264_qsv", "h264_amf"]
     } else {
-        "libx264"
+        &[]
     };
 
-    // Test if encoder is available
-    let output = create_command(ffmpeg)
-        .args([
-            "-hide_banner",
-            "-f",
-            "lavfi",
-            "-i",
-            "nullsrc=s=320x240:d=0.1",
-            "-c:v",
-            encoder,
-            "-f",
-            "null",
-            "-",
-        ])
-        .output();
+    // Test hardware encoders in vendor order before falling back to CPU encoding.
+    for encoder in encoders {
+        let output = create_command(ffmpeg)
+            .args([
+                "-hide_banner",
+                "-f",
+                "lavfi",
+                "-i",
+                "nullsrc=s=640x360:d=0.1",
+                "-c:v",
+                encoder,
+                "-frames:v",
+                "1",
+                "-f",
+                "null",
+                "-",
+            ])
+            .output();
 
-    match output {
-        Ok(out) if out.status.success() => {
-            println!("Using hardware encoder: {}", encoder);
-            encoder
-        }
-        _ => {
-            if is_h265 {
-                println!(
-                    "Hardware encoder {} not available, falling back to libx265",
-                    encoder
-                );
-                return "libx265";
+        if let Ok(out) = output {
+            if out.status.success() {
+                println!("Using hardware encoder: {}", encoder);
+                write_encoder_cache(app, cache_key, encoder);
+                return Ok(VideoEncoder {
+                    name: encoder.to_string(),
+                });
             }
-            println!(
-                "Hardware encoder {} not available, falling back to libx264",
-                encoder
-            );
-            "libx264"
         }
+
+        println!("Hardware encoder {} not available", encoder);
+    }
+
+    println!(
+        "No hardware encoder available, falling back to {}",
+        fallback
+    );
+    write_encoder_cache(app, cache_key, fallback);
+    Ok(VideoEncoder {
+        name: fallback.to_string(),
+    })
+}
+
+fn encoder_cache_path(app: &tauri::AppHandle, cache_key: &str) -> Option<PathBuf> {
+    app.path().app_cache_dir().ok().map(|dir| {
+        dir.join("ffmpeg-encoder-cache")
+            .join(format!("{}.json", cache_key))
+    })
+}
+
+fn current_timestamp_secs() -> u64 {
+    SystemTime::now()
+        .duration_since(UNIX_EPOCH)
+        .map(|duration| duration.as_secs())
+        .unwrap_or(0)
+}
+
+fn is_cached_encoder_valid(cache_key: &str, encoder: &str) -> bool {
+    match cache_key {
+        "h265" => matches!(
+            encoder,
+            "hevc_videotoolbox" | "hevc_nvenc" | "hevc_qsv" | "hevc_amf" | "libx265"
+        ),
+        _ => matches!(
+            encoder,
+            "h264_videotoolbox" | "h264_nvenc" | "h264_qsv" | "h264_amf" | "libx264"
+        ),
+    }
+}
+
+fn read_encoder_cache(app: &tauri::AppHandle, cache_key: &str) -> Option<VideoEncoder> {
+    let cache_path = encoder_cache_path(app, cache_key)?;
+    let cache =
+        serde_json::from_str::<VideoEncoderCache>(&std::fs::read_to_string(cache_path).ok()?)
+            .ok()?;
+    let is_expired =
+        current_timestamp_secs().saturating_sub(cache.created_at) > ENCODER_CACHE_TTL_SECS;
+    if is_expired || !is_cached_encoder_valid(cache_key, &cache.encoder) {
+        return None;
+    }
+
+    println!("Using cached video encoder: {}", cache.encoder);
+    Some(VideoEncoder {
+        name: cache.encoder,
+    })
+}
+
+fn write_encoder_cache(app: &tauri::AppHandle, cache_key: &str, encoder: &str) {
+    let Some(cache_path) = encoder_cache_path(app, cache_key) else {
+        return;
+    };
+    if let Some(parent) = cache_path.parent() {
+        let _ = std::fs::create_dir_all(parent);
+    }
+    let cache = VideoEncoderCache {
+        encoder: encoder.to_string(),
+        created_at: current_timestamp_secs(),
+    };
+    if let Ok(content) = serde_json::to_string(&cache) {
+        let _ = std::fs::write(cache_path, content);
     }
 }
 
@@ -441,29 +524,39 @@ pub fn trim_fast(
     output_path: &str,
     start_secs: f64,
     duration: f64,
+    video_codec: Option<&str>,
 ) -> Result<FfmpegResult, String> {
     let ffmpeg = ffmpeg_path(app)?;
     println!("FFmpeg path: {}", ffmpeg);
-    println!(
-        "FFmpeg args: -y -ss {} -i {} -t {} -c copy -avoid_negative_ts 1 {}",
-        start_secs, input_path, duration, output_path
-    );
+    let mut args = vec![
+        "-y".to_string(),
+        "-ss".to_string(),
+        start_secs.to_string(),
+        "-i".to_string(),
+        input_path.to_string(),
+        "-t".to_string(),
+        duration.to_string(),
+        "-c".to_string(),
+        "copy".to_string(),
+    ];
+    if video_codec
+        .map(|codec| {
+            let lower = codec.to_lowercase();
+            lower.contains("h265") || lower.contains("h.265") || lower.contains("hevc")
+        })
+        .unwrap_or(false)
+    {
+        args.push("-tag:v".to_string());
+        args.push("hvc1".to_string());
+    }
+    args.extend_from_slice(&[
+        "-avoid_negative_ts".to_string(),
+        "1".to_string(),
+        output_path.to_string(),
+    ]);
 
     let output = create_command(&ffmpeg)
-        .args([
-            "-y",
-            "-ss",
-            &start_secs.to_string(),
-            "-i",
-            input_path,
-            "-t",
-            &duration.to_string(),
-            "-c",
-            "copy",
-            "-avoid_negative_ts",
-            "1",
-            output_path,
-        ])
+        .args(&args)
         .output()
         .map_err(|e| format!("Failed to execute ffmpeg: {}", e))?;
 
@@ -492,30 +585,45 @@ pub fn trim_audio(
     start_secs: f64,
     duration: f64,
     audio_bitrate: Option<u64>,
+    video_codec: Option<&str>,
 ) -> Result<FfmpegResult, String> {
     let ffmpeg = ffmpeg_path(app)?;
     let bitrate_kbps = audio_bitrate.unwrap_or(128000) / 1000;
+    let mut args = vec![
+        "-y".to_string(),
+        "-ss".to_string(),
+        start_secs.to_string(),
+        "-i".to_string(),
+        input_path.to_string(),
+        "-t".to_string(),
+        duration.to_string(),
+        "-c:v".to_string(),
+        "copy".to_string(),
+    ];
+    if video_codec
+        .map(|codec| {
+            let lower = codec.to_lowercase();
+            lower.contains("h265") || lower.contains("h.265") || lower.contains("hevc")
+        })
+        .unwrap_or(false)
+    {
+        args.push("-tag:v".to_string());
+        args.push("hvc1".to_string());
+    }
+    args.extend_from_slice(&[
+        "-c:a".to_string(),
+        "aac".to_string(),
+        "-b:a".to_string(),
+        format!("{}k", bitrate_kbps),
+        "-movflags".to_string(),
+        "+faststart".to_string(),
+        "-avoid_negative_ts".to_string(),
+        "1".to_string(),
+        output_path.to_string(),
+    ]);
+
     let output = create_command(&ffmpeg)
-        .args([
-            "-y",
-            "-ss",
-            &start_secs.to_string(),
-            "-i",
-            input_path,
-            "-t",
-            &duration.to_string(),
-            "-c:v",
-            "copy",
-            "-c:a",
-            "aac",
-            "-b:a",
-            &format!("{}k", bitrate_kbps),
-            "-movflags",
-            "+faststart",
-            "-avoid_negative_ts",
-            "1",
-            output_path,
-        ])
+        .args(&args)
         .output()
         .map_err(|e| format!("Failed to execute ffmpeg: {}", e))?;
 
@@ -546,7 +654,7 @@ pub fn trim_precise(
     audio_bitrate: Option<u64>,
 ) -> Result<FfmpegResult, String> {
     let ffmpeg = ffmpeg_path(app)?;
-    let encoder = detect_hw_encoder(&ffmpeg, video_codec.as_deref());
+    let encoder = detect_hw_encoder(app, &ffmpeg, video_codec.as_deref())?;
     let rotation = video_rotation(&ffmpeg, input_path)?;
     let mut args = vec!["-y".to_string(), "-ss".to_string(), start_secs.to_string()];
     if rotation != 0 {
@@ -577,8 +685,8 @@ pub fn trim_precise(
     }
 
     args.push("-c:v".to_string());
-    args.push(encoder.to_string());
-    if encoder.contains("265") || encoder.contains("hevc") {
+    args.push(encoder.name.to_string());
+    if encoder.name.contains("265") || encoder.name.contains("hevc") {
         args.push("-tag:v".to_string());
         args.push("hvc1".to_string());
     }

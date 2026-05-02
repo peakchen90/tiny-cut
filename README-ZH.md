@@ -20,11 +20,11 @@
 ## 功能特性
 
 - **简洁直观** — 界面清爽，专注核心功能
-- **快速剪切** — 无需重新编码，保留原始画质
-- **精准剪切** — 逐帧精确裁剪，重新编码
+- **统一导出** — 将视频导出为 H.264 或 H.265
+- **精准剪切** — 逐帧精确裁剪，并支持导出编码配置
 - **拖拽支持** — 直接拖拽视频文件到窗口
 - **内置 FFmpeg** — 无需安装外部依赖
-- **GPU 加速** — 支持硬件编码（macOS 使用 VideoToolbox，Windows 使用 NVENC）
+- **GPU 加速** — 支持 Apple、NVIDIA、Intel、AMD 平台的硬件编码
 - **隐私安全** — 所有处理均在本地完成
 - **跨平台** — 支持 macOS（Intel 和 Apple Silicon）和 Windows
 
@@ -43,6 +43,25 @@ TinyCut 支持以下视频格式：
 | WMV | `.wmv` |
 | M4V | `.m4v` |
 | 3GP | `.3gp` |
+
+## GPU 加速
+
+TinyCut 会将视频导出为 H.264 或 H.265。硬件编码可用时会优先使用对应的 GPU 编码器，不可用时回退到 CPU 编码。
+
+### 支持的编码器
+
+| 平台 | 硬件 | H.264 | H.265 / HEVC |
+|------|------|-------|--------------|
+| macOS | Apple VideoToolbox | `h264_videotoolbox` | `hevc_videotoolbox` |
+| Windows | NVIDIA NVENC | `h264_nvenc` | `hevc_nvenc` |
+| Windows | Intel Quick Sync | `h264_qsv` | `hevc_qsv` |
+| Windows | AMD AMF | `h264_amf` | `hevc_amf` |
+
+### 探测缓存
+
+使用 GPU 编码前，TinyCut 会先验证当前设备上的编码器是否真的可用。探测结果会按编码类型（`h264`、`h265`）缓存在本地 24 小时，避免每次导出都重复探测。
+
+如果没有可用硬件编码器，H.264/H.265 会回退到 CPU 编码。
 
 ## 下载安装
 
@@ -148,7 +167,7 @@ yarn tauri:build
 | 前端 | React, TypeScript, Vite |
 | 后端 | Rust, Tauri v2 |
 | 视频处理 | FFmpeg（内置） |
-| GPU 加速 | VideoToolbox (macOS), NVENC (Windows) |
+| GPU 加速 | VideoToolbox, NVENC, QSV, AMF |
 
 ## 项目结构
 

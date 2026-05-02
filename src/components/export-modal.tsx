@@ -60,9 +60,10 @@ function getResolutionOptions(origW: number, origH: number): ResolutionOption[] 
 
 function getFpsOptions(origFps: number): FpsOption[] {
   const options: FpsOption[] = [{ label: `${t("export.original")} (${origFps} fps)`, value: origFps }];
+  const roundedOrigFps = Math.round(origFps);
   const presets = [60, 30, 25, 24];
   for (const f of presets) {
-    if (f < origFps) {
+    if (f < roundedOrigFps) {
       options.push({ label: `${f} fps`, value: f });
     }
   }
@@ -82,10 +83,13 @@ function getAudioBitrateOptions(origBitrate: number): AudioBitrateOption[] {
 }
 
 function getVideoCodecOptions(origCodec: string): VideoCodecOption[] {
-  const options: VideoCodecOption[] = [{ label: origCodec ? `${t("export.original")} (${origCodec})` : t("export.original"), value: null }];
   const codecs = ["H.264", "H.265"];
+  const options: VideoCodecOption[] = [];
+  if (codecs.includes(origCodec)) {
+    options.push({ label: `${t("export.original")} (${origCodec})`, value: null });
+  }
   for (const codec of codecs) {
-    if (origCodec !== codec) {
+    if (codec !== origCodec) {
       options.push({ label: codec, value: codec });
     }
   }
@@ -112,6 +116,14 @@ function getCodecBitrateScale(sourceCodec: string, targetCodec: string): number 
   if (source === "h265" && target === "h264") return 1.35;
   if (source === "other" && target === "h265") return 0.58;
   return 0.92;
+}
+
+function isAudioCopySafeForFormat(format: string, audioCodec: string): boolean {
+  if (!audioCodec) return true;
+  if (format === "mp4" || format === "mov") {
+    return audioCodec === "AAC" || audioCodec === "MP3";
+  }
+  return true;
 }
 
 function estimateVideoBitrate(info: VideoInfo, width: number, height: number, fps: number, videoCodec: string): number {
@@ -247,8 +259,11 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
   }, [videoInfo]);
 
   const trimDuration = trimRange.endTime - trimRange.startTime;
-  const shouldEncodeVideo = resolutionIdx !== 0 || fpsIdx !== 0 || videoCodecIdx !== 0;
-  const shouldEncodeAudio = audioBitrateIdx !== 0;
+  const videoCodec = videoCodecOptions[videoCodecIdx];
+  // Stream copy from a non-zero start can miss reference frames and show black leading frames.
+  const shouldEncodeOriginalStart = !!videoInfo && ["H.264", "H.265"].includes(videoInfo.codec) && !videoCodec?.value && trimRange.startTime > 0;
+  const shouldEncodeVideo = resolutionIdx !== 0 || fpsIdx !== 0 || !!videoCodec?.value || shouldEncodeOriginalStart;
+  const shouldEncodeAudio = audioBitrateIdx !== 0 || !!videoInfo && !isAudioCopySafeForFormat(FORMAT_OPTIONS[formatIdx].value, videoInfo.audio_codec);
   const mode = shouldEncodeVideo ? "precise" : shouldEncodeAudio ? "audio" : "fast";
 
   useEffect(() => {
@@ -259,14 +274,12 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
     const videoCodec = videoCodecOptions[videoCodecIdx];
     if (!res || !f || !videoCodec) return;
 
-    const totalBitrate = getSourceTotalBitrate(videoInfo);
     const originalAudioBitrate = videoInfo.audio_bitrate || 0;
     const selectedAudioBitrate = audio?.value ?? originalAudioBitrate;
     if (!shouldEncodeVideo) {
-      setEstimatedBitrate(Math.max(totalBitrate - originalAudioBitrate, 0) + selectedAudioBitrate);
+      setEstimatedBitrate(Math.max(getSourceTotalBitrate(videoInfo) - originalAudioBitrate, 0) + selectedAudioBitrate);
       return;
     }
-
     setEstimatedBitrate(estimateVideoBitrate(videoInfo, res.width, res.height, f.value, videoCodec.value || videoInfo.codec) + selectedAudioBitrate);
   }, [videoInfo, resolutionIdx, fpsIdx, audioBitrateIdx, videoCodecIdx, shouldEncodeVideo, resolutionOptions, fpsOptions, audioBitrateOptions, videoCodecOptions]);
 
@@ -319,14 +332,10 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
     const res = resolutionOptions[resolutionIdx];
     const f = fpsOptions[fpsIdx];
     const audioBitrate = audioBitrateOptions[audioBitrateIdx];
-    const videoCodec = videoCodecOptions[videoCodecIdx];
 
     try {
       // Calculate scaled bitrate based on resolution ratio
-      let bitrate: number | undefined;
-      if (shouldEncodeVideo && videoInfo) {
-        bitrate = estimateVideoBitrate(videoInfo, res.width, res.height, f.value, videoCodec?.value || videoInfo.codec);
-      }
+      const bitrate = shouldEncodeVideo && videoInfo ? estimateVideoBitrate(videoInfo, res.width, res.height, f.value, videoCodec?.value || videoInfo.codec) : undefined;
 
       const result = await trimVideo(
         filePath,
@@ -338,7 +347,7 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
         shouldEncodeVideo ? res.height : undefined,
         shouldEncodeVideo ? f.value : undefined,
         bitrate,
-        shouldEncodeVideo ? videoCodec?.value || videoInfo?.codec || undefined : undefined,
+        shouldEncodeVideo ? videoCodec?.value || videoInfo?.codec || undefined : videoInfo?.codec || undefined,
         shouldEncodeVideo || shouldEncodeAudio ? audioBitrate?.value || videoInfo?.audio_bitrate || undefined : undefined
       );
       if (result.success) {
