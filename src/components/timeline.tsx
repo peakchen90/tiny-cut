@@ -251,7 +251,7 @@ export default function Timeline({
         <div
           className="trimmer-playhead"
           data-handle="playhead"
-          style={{ left: `${playheadPct}%` }}
+          style={{ left: `clamp(calc(${leftPct}% + 3px), ${playheadPct}%, calc(${rightPct}% - 3px))` }}
         />
       </div>
     </div>
