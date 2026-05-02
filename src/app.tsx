@@ -8,7 +8,7 @@ import VideoPlayer from "./components/video-player";
 import Timeline from "./components/timeline";
 import ExportModal from "./components/export-modal";
 import { InfoModal } from "./components/info-modal";
-import { formatTimeShort } from "./lib/time";
+import { formatTimeWithMs } from "./lib/time";
 import { getLang, t } from "./lib/i18n";
 import { getFileName } from "./lib/path";
 import type { TrimRange, ExportStatus } from "./types/trim";
@@ -202,7 +202,7 @@ export default function App() {
         const video = videoRef.current;
         if (!video || !filePath) return;
 
-        const step = e.shiftKey ? 2 : 0.2;
+        const step = e.shiftKey ? 0.01 : 1;
         const direction = e.code === "ArrowLeft" ? -1 : 1;
         const newTime = Math.max(trimRange.startTime, Math.min(trimRange.endTime, currentTime + direction * step));
 
@@ -405,15 +405,8 @@ export default function App() {
 
       <div className="editor-bottom">
         <div className="time-labels">
-          <div className="time-label">
-            <span className="time-label-tag">{t("editor.start")}</span>
-            <span className="time-label-value">{formatTimeShort(trimRange.startTime)}</span>
-          </div>
-          <span className="time-label-duration">{formatTimeShort(Math.max(0, currentTime - trimRange.startTime))} / {formatTimeShort(trimDuration)}</span>
-          <div className="time-label">
-            <span className="time-label-tag">{t("editor.end")}</span>
-            <span className="time-label-value">{formatTimeShort(trimRange.endTime)}</span>
-          </div>
+          <span className="time-label-duration">{formatTimeWithMs(Math.max(0, currentTime - trimRange.startTime))} / {formatTimeWithMs(trimDuration)}</span>
+          <span className="time-label-hint">{t("editor.shiftHint")}</span>
         </div>
 
         <div className="timeline-row">

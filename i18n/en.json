@@ -12,7 +12,8 @@
     "start": "Start",
     "end": "End",
     "duration": "Duration",
-    "trimDuration": "Trim Duration"
+    "trimDuration": "Trim Duration",
+    "shiftHint": "Hold Shift for frame-by-frame control"
   },
   "export": {
     "fastTrim": "Fast Trim",

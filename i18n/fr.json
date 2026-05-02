@@ -12,7 +12,8 @@
     "start": "Début",
     "end": "Fin",
     "duration": "Durée",
-    "trimDuration": "Durée de découpe"
+    "trimDuration": "Durée de découpe",
+    "shiftHint": "Maintenez Shift pour un contrôle image par image"
   },
   "export": {
     "fastTrim": "Découpe rapide",

@@ -12,7 +12,8 @@
     "start": "Start",
     "end": "Ende",
     "duration": "Dauer",
-    "trimDuration": "Schnittdauer"
+    "trimDuration": "Schnittdauer",
+    "shiftHint": "Umschalttaste für Einzelbildsteuerung halten"
   },
   "export": {
     "fastTrim": "Schneller Schnitt",

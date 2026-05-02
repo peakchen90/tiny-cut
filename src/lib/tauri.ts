@@ -48,7 +48,7 @@ export async function trimVideo(
 function formatSecondsToHms(secs: number): string {
   const h = Math.floor(secs / 3600);
   const m = Math.floor((secs % 3600) / 60);
-  const s = (secs % 60).toFixed(3);
+  const s = (secs % 60).toFixed(2);
   return `${pad(h)}:${pad(m)}:${s}`;
 }
 

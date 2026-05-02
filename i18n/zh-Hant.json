@@ -12,7 +12,8 @@
     "start": "開始",
     "end": "結束",
     "duration": "時長",
-    "trimDuration": "裁剪時長"
+    "trimDuration": "裁剪時長",
+    "shiftHint": "按住 shift 鍵支持逐幀控制"
   },
   "export": {
     "fastTrim": "快速裁剪",

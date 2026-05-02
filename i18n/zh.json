@@ -12,7 +12,8 @@
     "start": "起始",
     "end": "结束",
     "duration": "时长",
-    "trimDuration": "剪切时长"
+    "trimDuration": "剪切时长",
+    "shiftHint": "按住 shift 键支持逐帧控制"
   },
   "export": {
     "fastTrim": "快速剪切",

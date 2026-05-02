@@ -55,10 +55,23 @@ export default function Timeline({
         setTooltipTime(trimRange.startTime);
         setTooltipPct(leftPct);
 
-        let finalTime = trimRange.startTime;
+        let startX = e.clientX;
+        let startTime = trimRange.startTime;
+        let prevShift = e.shiftKey;
+        let finalTime = startTime;
         const onMove = (ev: MouseEvent) => {
-          const t = getTimeFromX(ev.clientX);
-          finalTime = Math.max(0, Math.min(t, trimRange.endTime - 0.05));
+          if (ev.shiftKey && !prevShift) {
+            startX = ev.clientX;
+            startTime = finalTime;
+          }
+          prevShift = ev.shiftKey;
+          if (ev.shiftKey) {
+            const dx = ev.clientX - startX;
+            finalTime = Math.max(0, Math.min(startTime + dx * 0.01, trimRange.endTime - 0.05));
+          } else {
+            const t = getTimeFromX(ev.clientX);
+            finalTime = Math.max(0, Math.min(t, trimRange.endTime - 0.05));
+          }
           onRangeChange({ startTime: finalTime, endTime: trimRange.endTime });
           onSeek(finalTime);
           setTooltipTime(finalTime);
@@ -79,10 +92,23 @@ export default function Timeline({
         setTooltipTime(trimRange.endTime);
         setTooltipPct(rightPct);
 
-        let finalTime = trimRange.endTime;
+        let startX = e.clientX;
+        let startTime = trimRange.endTime;
+        let prevShift = e.shiftKey;
+        let finalTime = startTime;
         const onMove = (ev: MouseEvent) => {
-          const t = getTimeFromX(ev.clientX);
-          finalTime = Math.min(duration, Math.max(t, trimRange.startTime + 0.05));
+          if (ev.shiftKey && !prevShift) {
+            startX = ev.clientX;
+            startTime = finalTime;
+          }
+          prevShift = ev.shiftKey;
+          if (ev.shiftKey) {
+            const dx = ev.clientX - startX;
+            finalTime = Math.min(duration, Math.max(startTime + dx * 0.01, trimRange.startTime + 0.05));
+          } else {
+            const t = getTimeFromX(ev.clientX);
+            finalTime = Math.min(duration, Math.max(t, trimRange.startTime + 0.05));
+          }
           onRangeChange({ startTime: trimRange.startTime, endTime: finalTime });
           onSeek(finalTime);
           setTooltipTime(finalTime);
@@ -107,8 +133,25 @@ export default function Timeline({
         onPlayheadDragStart();
         const m = getClampMargin();
         const clamp = (t: number) => Math.max(trimRange.startTime + m, Math.min(trimRange.endTime - m, t));
-        onSeek(clamp(getTimeFromX(e.clientX)));
-        const onMove = (ev: MouseEvent) => onSeek(clamp(getTimeFromX(ev.clientX)));
+
+        let startX = e.clientX;
+        let startTime = clamp(getTimeFromX(e.clientX));
+        let prevShift = e.shiftKey;
+        onSeek(startTime);
+
+        const onMove = (ev: MouseEvent) => {
+          if (ev.shiftKey && !prevShift) {
+            startX = ev.clientX;
+            startTime = clamp(getTimeFromX(ev.clientX));
+          }
+          prevShift = ev.shiftKey;
+          if (ev.shiftKey) {
+            const dx = ev.clientX - startX;
+            onSeek(clamp(startTime + dx * 0.01));
+          } else {
+            onSeek(clamp(getTimeFromX(ev.clientX)));
+          }
+        };
         const onUp = () => {
           window.removeEventListener("mousemove", onMove);
           window.removeEventListener("mouseup", onUp);

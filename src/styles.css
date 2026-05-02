@@ -229,8 +229,15 @@ body::before {
 
 .time-label-duration {
   font-size: 12px;
-  color: rgba(255, 255, 255, 0.3);
+  color: rgba(255, 255, 255, 0.5);
   font-variant-numeric: tabular-nums;
+  font-weight: 500;
+}
+
+.time-label-hint {
+  font-size: 11px;
+  color: rgba(255, 255, 255, 0.3);
+  font-style: italic;
 }
 
 /* ── Timeline Row ── */

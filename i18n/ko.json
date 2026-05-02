@@ -12,7 +12,8 @@
     "start": "시작",
     "end": "끝",
     "duration": "길이",
-    "trimDuration": "트림 길이"
+    "trimDuration": "트림 길이",
+    "shiftHint": "Shift를 누르면 프레임 단위로 제어할 수 있습니다"
   },
   "export": {
     "fastTrim": "빠른 트림",

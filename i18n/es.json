@@ -12,7 +12,8 @@
     "start": "Inicio",
     "end": "Fin",
     "duration": "Duración",
-    "trimDuration": "Duración del corte"
+    "trimDuration": "Duración del corte",
+    "shiftHint": "Mantén Shift para control fotograma a fotograma"
   },
   "export": {
     "fastTrim": "Corte rápido",

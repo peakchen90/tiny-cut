@@ -12,7 +12,8 @@
     "start": "開始",
     "end": "終了",
     "duration": "長さ",
-    "trimDuration": "トリム時間"
+    "trimDuration": "トリム時間",
+    "shiftHint": "Shiftを押すとフレーム単位で制御できます"
   },
   "export": {
     "fastTrim": "高速トリム",
