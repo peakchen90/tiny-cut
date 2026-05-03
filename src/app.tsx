@@ -23,6 +23,7 @@ export default function App() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
+  const exportBringToFrontRef = useRef<(() => void) | null>(null);
   const [exportStatus, setExportStatus] = useState<ExportStatus>("idle");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [videoKey, setVideoKey] = useState(0);
@@ -110,12 +111,16 @@ export default function App() {
 
   const handleExportClick = useCallback(() => {
     setShowMenu(false);
-    setShowExportModal(true);
+    if (showExportModal) {
+      exportBringToFrontRef.current?.();
+    } else {
+      setShowExportModal(true);
+    }
     const video = videoRef.current;
     if (video && !video.paused) {
       video.pause();
     }
-  }, []);
+  }, [showExportModal]);
 
   const handleInfoClick = useCallback(() => {
     if (!filePath) return;
@@ -496,6 +501,7 @@ export default function App() {
         <ExportModal
           filePath={filePath}
           trimRange={trimRange}
+          onBringToFront={(fn) => { exportBringToFrontRef.current = fn; }}
           onClose={() => setShowExportModal(false)}
           onExportStart={handleExportStart}
           onExportEnd={(status, message) => {

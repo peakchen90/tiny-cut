@@ -3,7 +3,7 @@ import { getVideoInfo } from "../lib/tauri";
 import { formatTimeShort } from "../lib/time";
 import { t } from "../lib/i18n";
 import { getFileName } from "../lib/path";
-import { Modal, type ModalRef } from "./modal";
+import { Modal, bringToFront, type ModalRef } from "./modal";
 import type { VideoInfo } from "../types/trim";
 
 function formatFileSize(bytes: number) {
@@ -94,7 +94,10 @@ function InfoContent({ filePath }: { filePath: string }) {
 let currentInfoModal: ModalRef | null = null;
 
 export function openInfoModal(filePath: string): ModalRef {
-  currentInfoModal?.close();
+  if (currentInfoModal) {
+    bringToFront(currentInfoModal.id);
+    return currentInfoModal;
+  }
   currentInfoModal = Modal.open({
     title: t("video.videoInfo"),
     width: 400,

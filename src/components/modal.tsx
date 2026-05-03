@@ -15,6 +15,7 @@ interface ModalConfig {
 }
 
 interface ModalRef {
+  id: number;
   close: () => void;
 }
 
@@ -26,6 +27,7 @@ interface ModalProps {
   maskClosable?: boolean;
   keyboard?: boolean;
   onClose?: () => void;
+  onInit?: (bringToFront: () => void) => void;
   children: ReactNode;
 }
 
@@ -77,8 +79,16 @@ function updateEntry(id: number, patch: Partial<ModalEntry>) {
   const entry = modals.get(id);
   if (entry) {
     Object.assign(entry, patch);
-    renderPortal();
+    bringToFront(id);
   }
+}
+
+function bringToFront(id: number) {
+  const entry = modals.get(id);
+  if (!entry) return;
+  modals.delete(id);
+  modals.set(id, entry);
+  renderPortal();
 }
 
 // ── Global ESC handler ──
@@ -107,6 +117,7 @@ interface ModalShellProps {
   keyboard: boolean;
   onClose?: () => void;
   onDestroy?: () => void;
+  onInit?: (bringToFront: () => void) => void;
   modalId: number;
 }
 
@@ -148,7 +159,7 @@ function buildRender(
   );
 }
 
-function ModalShell({ title, showClose, width, content, footer, maskClosable, keyboard, onClose, onDestroy, modalId }: ModalShellProps) {
+function ModalShell({ title, showClose, width, content, footer, maskClosable, keyboard, onClose, onDestroy, onInit, modalId }: ModalShellProps) {
   const onCloseRef = useRef(onClose);
   onCloseRef.current = onClose;
   const onDestroyRef = useRef(onDestroy);
@@ -172,6 +183,10 @@ function ModalShell({ title, showClose, width, content, footer, maskClosable, ke
   }, []);
 
   useEffect(() => {
+    onInit?.(() => bringToFront(modalId));
+  }, []);
+
+  useEffect(() => {
     const renderProps = { title, showClose, width, content, footer, maskClosable };
     updateEntry(modalId, {
       close: handleClose,
@@ -186,7 +201,7 @@ function ModalShell({ title, showClose, width, content, footer, maskClosable, ke
 
 // ── Public: Component ──
 
-function Modal({ title, showClose = title != null, width = 400, footer, maskClosable = true, keyboard = true, onClose, children }: ModalProps) {
+function Modal({ title, showClose = title != null, width = 400, footer, maskClosable = true, keyboard = true, onClose, onInit, children }: ModalProps) {
   const [modalId] = useState(() => ++idCounter);
   return (
     <ModalShell
@@ -198,6 +213,7 @@ function Modal({ title, showClose = title != null, width = 400, footer, maskClos
       maskClosable={maskClosable}
       keyboard={keyboard}
       onClose={onClose}
+      onInit={onInit}
       modalId={modalId}
     />
   );
@@ -231,11 +247,11 @@ Modal.open = function open(config: ModalConfig): ModalRef {
     ),
   });
 
-  return { close: destroy };
+  return { id: modalId, close: destroy };
 };
 
 Modal.closeAll = function closeAll() {
   Array.from(modals.values()).reverse().forEach((m) => m.close());
 };
 
-export { Modal, type ModalConfig, type ModalRef };
+export { Modal, bringToFront, type ModalConfig, type ModalRef };

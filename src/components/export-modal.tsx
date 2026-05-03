@@ -12,6 +12,7 @@ interface Props {
   onClose: () => void;
   onExportStart: () => void;
   onExportEnd: (status: ExportStatus, message?: string) => void;
+  onBringToFront?: (fn: () => void) => void;
 }
 
 interface ResolutionOption {
@@ -139,7 +140,7 @@ function estimateVideoBitrate(info: VideoInfo, width: number, height: number, fp
   return Math.max(Math.round(sourceVideoBitrate * pixelScale * fpsScale * getCodecBitrateScale(info.codec, videoCodec)), 0);
 }
 
-export default function ExportModal({ filePath, trimRange, onClose, onExportStart, onExportEnd }: Props) {
+export default function ExportModal({ filePath, trimRange, onClose, onExportStart, onExportEnd, onBringToFront }: Props) {
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -457,6 +458,7 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
       maskClosable={!exporting}
       keyboard={!exporting}
       onClose={onClose}
+      onInit={onBringToFront}
     >
       {bodyContent}
     </Modal>
