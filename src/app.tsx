@@ -7,12 +7,13 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import VideoPlayer from "./components/video-player";
 import Timeline from "./components/timeline";
 import ExportModal from "./components/export-modal";
+import { openExportProgressModal } from "./components/export-progress-modal";
 import { openInfoModal } from "./components/info-modal";
 import { Modal } from "./components/modal";
 import { formatTimeWithMs } from "./lib/time";
 import { getLang, t } from "./lib/i18n";
 import { getFileName } from "./lib/path";
-import type { TrimRange, ExportStatus } from "./types/trim";
+import type { TrimRange } from "./types/trim";
 
 export default function App() {
   const [filePath, setFilePath] = useState("");
@@ -24,15 +25,8 @@ export default function App() {
   const [showMenu, setShowMenu] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
   const exportBringToFrontRef = useRef<(() => void) | null>(null);
-  const [exportStatus, setExportStatus] = useState<ExportStatus>("idle");
-  const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [videoKey, setVideoKey] = useState(0);
   const [isMaximized, setIsMaximized] = useState(false);
-  const filePathRef = useRef(filePath);
-
-  useEffect(() => {
-    filePathRef.current = filePath;
-  }, [filePath]);
 
   const handleDurationChange = useCallback((dur: number) => {
     setDuration(dur);
@@ -128,25 +122,6 @@ export default function App() {
     openInfoModal(filePath);
   }, [filePath]);
 
-  const handleExportStart = useCallback(() => {
-    setExportStatus("exporting");
-  }, []);
-
-  const handleExportEnd = useCallback((status: ExportStatus, message?: string) => {
-    setExportStatus(status);
-    if (status === "success") {
-      setToast({ message: t("export.exportSuccess"), type: "success" });
-      setTimeout(() => setToast(null), 3000);
-    }
-    if (status === "error") {
-      setToast({ message: message || t("export.exportFailed"), type: "error" });
-      setTimeout(() => setToast(null), 5000);
-    }
-    if (status !== "idle") {
-      setTimeout(() => setExportStatus("idle"), 3000);
-    }
-  }, []);
-
   const isMac = /macintosh|mac os x|mac_powerpc/i.test(navigator.userAgent);
 
   // Track window maximized state for Windows titlebar button icon
@@ -206,7 +181,7 @@ export default function App() {
           handleInfoClick();
           return;
         }
-        if (e.code === "KeyE" && filePath && exportStatus !== "exporting") {
+        if (e.code === "KeyE" && filePath) {
           e.preventDefault();
           handleExportClick();
           return;
@@ -252,7 +227,7 @@ export default function App() {
         handleInfoClick();
         return;
       }
-      if (event.payload === "export-video" && filePath && exportStatus !== "exporting") {
+      if (event.payload === "export-video" && filePath) {
         handleExportClick();
       }
     }).then((unlisten) => {
@@ -321,8 +296,6 @@ export default function App() {
     setShowMenu(false);
     setShowExportModal(false);
     Modal.closeAll();
-    setExportStatus("idle");
-    setToast(null);
     setDragOver(false);
     setVideoKey(prev => prev + 1);
   }
@@ -480,14 +453,14 @@ export default function App() {
                   </div>
                   {renderShortcut(isMac ? '⌘+I' : 'CTRL+I')}
                 </button>
-                <button className="more-menu-item" onClick={handleExportClick} disabled={exportStatus === "exporting"}>
+                <button className="more-menu-item" onClick={handleExportClick}>
                   <div className="more-menu-item-left">
                     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
                       <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
                       <polyline points="7 10 12 15 17 10" />
                       <line x1="12" y1="15" x2="12" y2="3" />
                     </svg>
-                    <span>{exportStatus === "exporting" ? t("export.exporting") : t("menu.exportVideo")}</span>
+                    <span>{t("menu.exportVideo")}</span>
                   </div>
                   {renderShortcut(isMac ? '⌘+E' : 'CTRL+E')}
                 </button>
@@ -503,30 +476,12 @@ export default function App() {
           trimRange={trimRange}
           onBringToFront={(fn) => { exportBringToFrontRef.current = fn; }}
           onClose={() => setShowExportModal(false)}
-          onExportStart={handleExportStart}
-          onExportEnd={(status, message) => {
-            if (filePathRef.current === filePath) {
-              handleExportEnd(status, message);
-            }
+          onExport={(outputPath, promise) => {
+            setShowExportModal(false);
+            openExportProgressModal(outputPath);
+            void promise.catch(() => {});
           }}
         />
-      )}
-
-      {toast && (
-        <div className={`toast toast-${toast.type}`}>
-          {toast.type === "success" ? (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <polyline points="20 6 9 17 4 12" />
-            </svg>
-          ) : (
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-          )}
-          {toast.message}
-        </div>
       )}
     </div>
   );

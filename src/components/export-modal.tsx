@@ -4,14 +4,13 @@ import { getVideoInfo, trimVideo, checkFileExists } from "../lib/tauri";
 import { t } from "../lib/i18n";
 import { getFileNameWithoutExtension } from "../lib/path";
 import { Modal } from "./modal";
-import type { VideoInfo, ExportStatus, TrimRange } from "../types/trim";
+import type { VideoInfo, TrimRange } from "../types/trim";
 
 interface Props {
   filePath: string;
   trimRange: TrimRange;
   onClose: () => void;
-  onExportStart: () => void;
-  onExportEnd: (status: ExportStatus, message?: string) => void;
+  onExport: (outputPath: string, promise: Promise<unknown>) => void;
   onBringToFront?: (fn: () => void) => void;
 }
 
@@ -140,7 +139,7 @@ function estimateVideoBitrate(info: VideoInfo, width: number, height: number, fp
   return Math.max(Math.round(sourceVideoBitrate * pixelScale * fpsScale * getCodecBitrateScale(info.codec, videoCodec)), 0);
 }
 
-export default function ExportModal({ filePath, trimRange, onClose, onExportStart, onExportEnd, onBringToFront }: Props) {
+export default function ExportModal({ filePath, trimRange, onClose, onExport, onBringToFront }: Props) {
   const [videoInfo, setVideoInfo] = useState<VideoInfo | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -150,7 +149,6 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
   const [videoCodecIdx, setVideoCodecIdx] = useState(0);
   const [formatIdx, setFormatIdx] = useState(0);
   const [outputPath, setOutputPath] = useState<string>("");
-  const [exporting, setExporting] = useState(false);
   const [estimatedBitrate, setEstimatedBitrate] = useState<number>(0);
   const selectedDirRef = useRef("");
 
@@ -312,47 +310,34 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
   };
 
   const handleExport = async () => {
-    if (!outputPath || exporting) return;
+    if (!outputPath) return;
 
     const finalPath = await getUniquePath(outputPath);
     if (finalPath !== outputPath) {
       setOutputPath(finalPath);
     }
 
-    setExporting(true);
-    onExportStart();
-
     const res = resolutionOptions[resolutionIdx];
     const f = fpsOptions[fpsIdx];
     const audioBitrate = audioBitrateOptions[audioBitrateIdx];
+    const bitrate = shouldEncodeVideo && videoInfo ? estimateVideoBitrate(videoInfo, res.width, res.height, f.value, videoCodec?.value || videoInfo.codec) : undefined;
 
-    try {
-      const bitrate = shouldEncodeVideo && videoInfo ? estimateVideoBitrate(videoInfo, res.width, res.height, f.value, videoCodec?.value || videoInfo.codec) : undefined;
+    const promise = trimVideo(
+      filePath,
+      finalPath,
+      trimRange.startTime,
+      trimRange.endTime,
+      mode,
+      shouldEncodeVideo ? res.width : undefined,
+      shouldEncodeVideo ? res.height : undefined,
+      shouldEncodeVideo ? f.value : undefined,
+      bitrate,
+      shouldEncodeVideo ? videoCodec?.value || videoInfo?.codec || undefined : videoInfo?.codec || undefined,
+      shouldEncodeVideo || shouldEncodeAudio ? audioBitrate?.value || videoInfo?.audio_bitrate || undefined : undefined
+    );
 
-      const result = await trimVideo(
-        filePath,
-        finalPath,
-        trimRange.startTime,
-        trimRange.endTime,
-        mode,
-        shouldEncodeVideo ? res.width : undefined,
-        shouldEncodeVideo ? res.height : undefined,
-        shouldEncodeVideo ? f.value : undefined,
-        bitrate,
-        shouldEncodeVideo ? videoCodec?.value || videoInfo?.codec || undefined : videoInfo?.codec || undefined,
-        shouldEncodeVideo || shouldEncodeAudio ? audioBitrate?.value || videoInfo?.audio_bitrate || undefined : undefined
-      );
-      if (result.success) {
-        onExportEnd("success");
-      } else {
-        onExportEnd("error", result.message || t("export.exportFailed"));
-      }
-    } catch (err) {
-      console.error("Export error:", err);
-      onExportEnd("error", String(err));
-    } finally {
-      setExporting(false);
-    }
+    onExport(finalPath, promise);
+    onClose();
   };
 
   const bodyContent = loading ? (
@@ -443,8 +428,8 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
         <span className="modal-footer-value">{formatDuration(trimDuration)}</span>
       </div>
       <div className="modal-footer-right">
-        <button className="btn-export" onClick={handleExport} disabled={loading || exporting || !outputPath}>
-          {exporting ? t("export.exporting") : t("export.export")}
+        <button className="btn-export" onClick={handleExport} disabled={loading || !outputPath}>
+          {t("export.export")}
         </button>
       </div>
     </>
@@ -455,8 +440,6 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
       title={t("export.exportSettings")}
       width={560}
       footer={footerContent}
-      maskClosable={!exporting}
-      keyboard={!exporting}
       onClose={onClose}
       onInit={onBringToFront}
     >

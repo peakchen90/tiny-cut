@@ -1,8 +1,9 @@
 use serde::{Deserialize, Serialize};
+use std::io::{BufRead, BufReader};
 use std::path::PathBuf;
-use std::process::Command;
+use std::process::{Command, Stdio};
 use std::time::{SystemTime, UNIX_EPOCH};
-use tauri::Manager;
+use tauri::{Emitter, Manager};
 
 #[cfg(target_os = "windows")]
 use std::os::windows::process::CommandExt;
@@ -21,6 +22,92 @@ fn create_command(program: &str) -> Command {
     #[cfg(not(target_os = "windows"))]
     {
         Command::new(program)
+    }
+}
+
+#[derive(Serialize, Clone)]
+pub struct ExportProgress {
+    pub percent: f64,
+    pub status: String,
+    pub message: Option<String>,
+}
+
+fn spawn_with_progress(
+    app: &tauri::AppHandle,
+    ffmpeg: &str,
+    args: &[String],
+    duration_secs: f64,
+) -> Result<FfmpegResult, String> {
+    let mut cmd = create_command(ffmpeg);
+    cmd.args(args)
+        .stdout(Stdio::piped())
+        .stderr(Stdio::piped());
+
+    let mut child = cmd
+        .spawn()
+        .map_err(|e| format!("Failed to execute ffmpeg: {}", e))?;
+
+    let stdout = child.stdout.take().unwrap();
+    let reader = BufReader::new(stdout);
+
+    let mut out_time_us: u64 = 0;
+    let total_us = (duration_secs * 1_000_000.0) as u64;
+
+    for line in reader.lines() {
+        let line = match line {
+            Ok(l) => l,
+            Err(_) => continue,
+        };
+        if let Some(val) = line.strip_prefix("out_time_us=") {
+            if let Ok(us) = val.trim().parse::<u64>() {
+                out_time_us = us;
+                let percent = if total_us > 0 {
+                    (out_time_us as f64 / total_us as f64 * 100.0).min(99.9)
+                } else {
+                    0.0
+                };
+                let _ = app.emit(
+                    "export-progress",
+                    ExportProgress {
+                        percent,
+                        status: "exporting".into(),
+                        message: None,
+                    },
+                );
+            }
+        }
+    }
+
+    let output = child
+        .wait_with_output()
+        .map_err(|e| format!("Failed to wait for ffmpeg: {}", e))?;
+
+    if output.status.success() {
+        let _ = app.emit(
+            "export-progress",
+            ExportProgress {
+                percent: 100.0,
+                status: "success".into(),
+                message: None,
+            },
+        );
+        Ok(FfmpegResult {
+            success: true,
+            message: "Export completed".into(),
+            output_path: None,
+        })
+    } else {
+        let stderr = String::from_utf8_lossy(&output.stderr);
+        let msg = format!("FFmpeg error: {}", stderr);
+        let _ = app.emit(
+            "export-progress",
+            ExportProgress {
+                percent: 0.0,
+                status: "error".into(),
+                message: Some(msg.clone()),
+            },
+        );
+        Err(msg)
     }
 }
 
@@ -552,30 +639,16 @@ pub fn trim_fast(
     args.extend_from_slice(&[
         "-avoid_negative_ts".to_string(),
         "1".to_string(),
+        "-progress".to_string(),
+        "pipe:1".to_string(),
+        "-stats_period".to_string(),
+        "0.1".to_string(),
         output_path.to_string(),
     ]);
 
-    let output = create_command(&ffmpeg)
-        .args(&args)
-        .output()
-        .map_err(|e| format!("Failed to execute ffmpeg: {}", e))?;
-
-    println!("FFmpeg exit status: {}", output.status);
-    if !output.status.success() {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        println!("FFmpeg stderr: {}", stderr);
-    }
-
-    if output.status.success() {
-        Ok(FfmpegResult {
-            success: true,
-            message: "Fast trim completed".into(),
-            output_path: Some(output_path.into()),
-        })
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        Err(format!("FFmpeg error: {}", stderr))
-    }
+    let mut result = spawn_with_progress(app, &ffmpeg, &args, duration)?;
+    result.output_path = Some(output_path.into());
+    Ok(result)
 }
 
 pub fn trim_audio(
@@ -619,24 +692,16 @@ pub fn trim_audio(
         "+faststart".to_string(),
         "-avoid_negative_ts".to_string(),
         "1".to_string(),
+        "-progress".to_string(),
+        "pipe:1".to_string(),
+        "-stats_period".to_string(),
+        "0.1".to_string(),
         output_path.to_string(),
     ]);
 
-    let output = create_command(&ffmpeg)
-        .args(&args)
-        .output()
-        .map_err(|e| format!("Failed to execute ffmpeg: {}", e))?;
-
-    if output.status.success() {
-        Ok(FfmpegResult {
-            success: true,
-            message: "Audio trim completed".into(),
-            output_path: Some(output_path.into()),
-        })
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        Err(format!("FFmpeg error: {}", stderr))
-    }
+    let mut result = spawn_with_progress(app, &ffmpeg, &args, duration)?;
+    result.output_path = Some(output_path.into());
+    Ok(result)
 }
 
 #[allow(clippy::too_many_arguments)]
@@ -716,22 +781,14 @@ pub fn trim_precise(
         format!("{}k", audio_bitrate.unwrap_or(128000) / 1000),
         "-movflags".to_string(),
         "+faststart".to_string(),
+        "-progress".to_string(),
+        "pipe:1".to_string(),
+        "-stats_period".to_string(),
+        "0.1".to_string(),
         output_path.to_string(),
     ]);
 
-    let output = create_command(&ffmpeg)
-        .args(&args)
-        .output()
-        .map_err(|e| format!("Failed to execute ffmpeg: {}", e))?;
-
-    if output.status.success() {
-        Ok(FfmpegResult {
-            success: true,
-            message: "Precise trim completed".into(),
-            output_path: Some(output_path.into()),
-        })
-    } else {
-        let stderr = String::from_utf8_lossy(&output.stderr);
-        Err(format!("FFmpeg error: {}", stderr))
-    }
+    let mut result = spawn_with_progress(app, &ffmpeg, &args, duration)?;
+    result.output_path = Some(output_path.into());
+    Ok(result)
 }
