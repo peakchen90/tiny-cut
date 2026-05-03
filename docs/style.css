@@ -242,7 +242,7 @@ a:hover {
 /* ============ GPU ============ */
 .gpu {
   padding: 56px 20px;
-  background: var(--bg-alt);
+  background: var(--bg);
 }
 
 .gpu-content {
@@ -318,7 +318,9 @@ a:hover {
 
 /* ============ Download ============ */
 .download {
-  padding: 56px 20px;
+  padding: 64px 20px;
+  background: var(--bg);
+  border-top: 1px solid var(--border);
 }
 
 .download-grid {
@@ -456,7 +458,7 @@ a:hover {
 /* ============ Formats ============ */
 .formats {
   padding: 56px 20px;
-  background: var(--bg);
+  background: var(--bg-alt);
 }
 
 .formats-tags {
