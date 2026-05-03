@@ -73,6 +73,15 @@ fn i18n_json(lang: &str) -> &'static str {
     if lang.starts_with("ko") {
         return include_str!("../../i18n/ko.json");
     }
+    if lang.starts_with("it") {
+        return include_str!("../../i18n/it.json");
+    }
+    if lang.starts_with("pt") {
+        return include_str!("../../i18n/pt-BR.json");
+    }
+    if lang.starts_with("ru") {
+        return include_str!("../../i18n/ru.json");
+    }
     include_str!("../../i18n/en.json")
 }
 
