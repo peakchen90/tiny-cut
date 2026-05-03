@@ -196,6 +196,26 @@ export default function App() {
         return;
       }
 
+      // Cmd/Ctrl+key shortcuts (macOS: Command only, Windows/Linux: Ctrl only)
+      const modKey = isMac ? e.metaKey : e.ctrlKey;
+      if (modKey) {
+        if (e.code === "KeyN") {
+          e.preventDefault();
+          handleNewProject();
+          return;
+        }
+        if (e.code === "KeyI" && filePath) {
+          e.preventDefault();
+          handleInfoClick();
+          return;
+        }
+        if (e.code === "KeyE" && filePath && exportStatus !== "exporting") {
+          e.preventDefault();
+          handleExportClick();
+          return;
+        }
+      }
+
       // Left/Right arrow: Seek
       if (e.code === "ArrowLeft" || e.code === "ArrowRight") {
         e.preventDefault();
@@ -214,7 +234,7 @@ export default function App() {
 
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
-  }, [filePath, togglePlay, currentTime, trimRange, showExportModal, showInfoModal, showMenu, exportStatus]);
+  });
 
   useEffect(() => {
     void invoke("set_menu_state", {
@@ -245,7 +265,7 @@ export default function App() {
     return () => {
       unlistenMenu?.();
     };
-  }, [filePath, exportStatus, handleNewProject, handleInfoClick, handleExportClick]);
+  });
 
   useEffect(() => {
     if (!showMenu) return;
