@@ -294,7 +294,6 @@ fn main() {
 
                     let handle = window.app_handle().clone();
                     window
-                        .app_handle()
                         .dialog()
                         .message(message)
                         .title(title)
