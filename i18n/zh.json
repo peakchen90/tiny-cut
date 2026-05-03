@@ -22,7 +22,7 @@
     "preciseTrimDesc": "重新编码，时间精准，速度较慢",
     "export": "导出",
     "exporting": "导出中...",
-    "remaining": "预计剩余时间 {time}",
+    "remaining": "预计剩余时间：{time}",
     "exportSuccess": "导出完成",
     "exportFailed": "导出失败",
     "exportSettings": "导出设置",

@@ -13,7 +13,7 @@
     "end": "終了",
     "duration": "長さ",
     "trimDuration": "トリム時間",
-    "shiftHint": "Shiftを押すとフレーム単位で制御できます"
+    "shiftHint": "Shiftキーを押しながらフレーム単位で調整できます"
   },
   "export": {
     "fastTrim": "高速トリム",
@@ -22,7 +22,7 @@
     "preciseTrimDesc": "再エンコードありで正確、低速",
     "export": "書き出し",
     "exporting": "書き出し中...",
-    "remaining": "残り約{time}",
+    "remaining": "推定残り時間: {time}",
     "exportSuccess": "書き出しが完了しました",
     "exportFailed": "書き出しに失敗しました",
     "exportSettings": "書き出し設定",

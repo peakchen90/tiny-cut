@@ -22,7 +22,7 @@
     "preciseTrimDesc": "Recodifica, preciso, más lento",
     "export": "Exportar",
     "exporting": "Exportando...",
-    "remaining": "Quedan aprox. {time}",
+    "remaining": "Tiempo restante estimado: {time}",
     "exportSuccess": "Exportación completada",
     "exportFailed": "Error al exportar",
     "exportSettings": "Ajustes de exportación",
