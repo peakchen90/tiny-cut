@@ -1035,8 +1035,10 @@ body::before {
   color: rgba(255, 255, 255, 0.45);
   line-height: 1.5;
   word-break: break-all;
-  max-height: 80px;
+  max-height: 100px;
   overflow-y: auto;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 /* ── Toast ── */
