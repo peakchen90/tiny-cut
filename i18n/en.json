@@ -22,6 +22,7 @@
     "preciseTrimDesc": "Re-encode, accurate, slower",
     "export": "Export",
     "exporting": "Exporting...",
+    "remaining": "Est. remaining {time}",
     "exportSuccess": "Export completed!",
     "exportFailed": "Export failed",
     "exportSettings": "Export Settings",

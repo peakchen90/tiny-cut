@@ -22,6 +22,7 @@
     "preciseTrimDesc": "재인코딩, 정확함, 더 느림",
     "export": "내보내기",
     "exporting": "내보내는 중...",
+    "remaining": "약 {time} 남음",
     "exportSuccess": "내보내기 완료",
     "exportFailed": "내보내기 실패",
     "exportSettings": "내보내기 설정",

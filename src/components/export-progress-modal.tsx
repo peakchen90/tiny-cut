@@ -35,14 +35,31 @@ export function openExportProgressModal(outputPath: string): ModalRef {
   return modalRef.current;
 }
 
+function formatRemainingTime(seconds: number): string {
+  const total = Math.ceil(seconds);
+  const h = Math.floor(total / 3600);
+  const m = Math.floor((total % 3600) / 60);
+  const s = total % 60;
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return h > 0 ? `${pad(h)}:${pad(m)}:${pad(s)}` : `${pad(m)}:${pad(s)}`;
+}
+
 function ExportProgressContent({ outputPath, modalRef }: Props) {
   const [percent, setPercent] = useState(0);
+  const [remaining, setRemaining] = useState<string>("--:--");
   const completedRef = useRef(false);
+  const startTimeRef = useRef(Date.now());
 
   useEffect(() => {
     const unlisten = listen<ExportProgress>("export-progress", (event) => {
       const { percent: p, status: s, message } = event.payload;
       setPercent(p);
+      if (p > 0) {
+        const elapsed = (Date.now() - startTimeRef.current) / 1000;
+        const estimatedTotal = elapsed / (p / 100);
+        const remainingSec = estimatedTotal - elapsed;
+        setRemaining(remainingSec > 0 ? formatRemainingTime(remainingSec) : "--:--");
+      }
       if ((s === "success" || s === "error") && !completedRef.current) {
         completedRef.current = true;
         // 导出完成，立即重置导出状态
@@ -102,7 +119,9 @@ function ExportProgressContent({ outputPath, modalRef }: Props) {
       </div>
 
       <div className="export-status-row">
-        <span className="export-status export-status-exporting">{t("export.exporting")}</span>
+        <span className="export-status export-status-exporting">
+          {t("export.remaining").replace("{time}", remaining)}
+        </span>
         <span className="export-progress-percent">{Math.round(percent)}%</span>
       </div>
     </div>

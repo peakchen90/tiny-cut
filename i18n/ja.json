@@ -22,6 +22,7 @@
     "preciseTrimDesc": "再エンコードありで正確、低速",
     "export": "書き出し",
     "exporting": "書き出し中...",
+    "remaining": "残り約{time}",
     "exportSuccess": "書き出しが完了しました",
     "exportFailed": "書き出しに失敗しました",
     "exportSettings": "書き出し設定",

@@ -22,6 +22,7 @@
     "preciseTrimDesc": "Neukodierung, präzise, langsamer",
     "export": "Exportieren",
     "exporting": "Exportiert...",
+    "remaining": "Noch ca. {time}",
     "exportSuccess": "Export abgeschlossen",
     "exportFailed": "Export fehlgeschlagen",
     "exportSettings": "Exporteinstellungen",

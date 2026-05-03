@@ -1017,7 +1017,9 @@ body::before {
 }
 
 .export-status-exporting {
-  color: rgba(255, 255, 255, 0.7);
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.5);
+  font-variant-numeric: tabular-nums;
 }
 
 .export-status-success {

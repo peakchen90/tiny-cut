@@ -22,6 +22,7 @@
     "preciseTrimDesc": "重新編碼，時間精準，速度較慢",
     "export": "匯出",
     "exporting": "匯出中...",
+    "remaining": "預計剩餘時間 {time}",
     "exportSuccess": "匯出完成",
     "exportFailed": "匯出失敗",
     "exportSettings": "匯出設定",

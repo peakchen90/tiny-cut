@@ -22,6 +22,7 @@
     "preciseTrimDesc": "Réencodage, précis, plus lent",
     "export": "Exporter",
     "exporting": "Exportation...",
+    "remaining": "Reste env. {time}",
     "exportSuccess": "Exportation terminée",
     "exportFailed": "Échec de l'exportation",
     "exportSettings": "Paramètres d'exportation",
