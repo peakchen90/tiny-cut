@@ -146,6 +146,8 @@ body::before {
   display: flex;
   align-items: center;
   height: 100%;
+  z-index: 99999999;
+  position: relative;
   -webkit-app-region: no-drag;
   app-region: no-drag;
 }
