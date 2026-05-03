@@ -169,8 +169,9 @@ export default function App() {
       }
 
       // Cmd/Ctrl+key shortcuts (macOS: Command only, Windows/Linux: Ctrl only)
+      // Only trigger with exactly Cmd/Ctrl, no other modifiers (Shift, Alt)
       const modKey = isMac ? e.metaKey : e.ctrlKey;
-      if (modKey) {
+      if (modKey && !e.shiftKey && !e.altKey) {
         if (e.code === "KeyN") {
           e.preventDefault();
           handleNewProject();
