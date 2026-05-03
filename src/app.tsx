@@ -390,6 +390,7 @@ export default function App() {
         onTimeUpdate={setCurrentTime}
         onDurationChange={handleDurationChange}
         onPlayStateChange={setIsPlaying}
+        onTogglePlay={togglePlay}
         videoRef={videoRef}
       />
 

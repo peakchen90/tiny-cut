@@ -8,6 +8,7 @@ interface Props {
   onTimeUpdate: (time: number) => void;
   onDurationChange: (duration: number) => void;
   onPlayStateChange: (playing: boolean) => void;
+  onTogglePlay: () => void;
   videoRef: React.MutableRefObject<HTMLVideoElement | null>;
 }
 
@@ -17,6 +18,7 @@ export default function VideoPlayer({
   onTimeUpdate,
   onDurationChange,
   onPlayStateChange,
+  onTogglePlay,
   videoRef,
 }: Props) {
   const [videoUrl, setVideoUrl] = useState("");
@@ -82,7 +84,7 @@ export default function VideoPlayer({
   }, [videoRef, onTimeUpdate]);
 
   return (
-    <div className="editor-preview" onContextMenu={(e) => e.preventDefault()}>
+    <div className="editor-preview" onContextMenu={(e) => e.preventDefault()} onClick={onTogglePlay}>
       {videoUrl && <video ref={videoRef} playsInline disablePictureInPicture controlsList="nodownload nofullscreen noremoteplayback" />}
     </div>
   );
