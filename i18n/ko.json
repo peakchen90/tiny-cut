@@ -56,5 +56,11 @@
     "audioSampleRate": "오디오 샘플레이트",
     "audioChannels": "오디오 채널",
     "audioBitrate": "오디오 비트레이트"
+  },
+  "confirmExit": {
+    "title": "종료 확인",
+    "message": "내보내기가 진행 중입니다. 종료하시겠습니까?",
+    "exit": "종료",
+    "cancel": "취소"
   }
 }

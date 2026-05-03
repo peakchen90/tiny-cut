@@ -56,5 +56,11 @@
     "audioSampleRate": "Audio-Abtastrate",
     "audioChannels": "Audiokanäle",
     "audioBitrate": "Audio-Bitrate"
+  },
+  "confirmExit": {
+    "title": "Beenden bestätigen",
+    "message": "Der Export ist noch nicht abgeschlossen. Möchten Sie wirklich beenden?",
+    "exit": "Beenden",
+    "cancel": "Abbrechen"
   }
 }

@@ -56,5 +56,11 @@
     "audioSampleRate": "音声サンプルレート",
     "audioChannels": "音声チャンネル",
     "audioBitrate": "音声ビットレート"
+  },
+  "confirmExit": {
+    "title": "終了の確認",
+    "message": "書き出し中です。終了してもよろしいですか？",
+    "exit": "終了",
+    "cancel": "キャンセル"
   }
 }

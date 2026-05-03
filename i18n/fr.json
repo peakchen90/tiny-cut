@@ -56,5 +56,11 @@
     "audioSampleRate": "Fréquence d'échantillonnage audio",
     "audioChannels": "Canaux audio",
     "audioBitrate": "Débit audio"
+  },
+  "confirmExit": {
+    "title": "Confirmer la sortie",
+    "message": "L'exportation est en cours. Êtes-vous sûr de vouloir quitter ?",
+    "exit": "Quitter",
+    "cancel": "Annuler"
   }
 }

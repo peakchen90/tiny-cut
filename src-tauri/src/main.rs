@@ -7,14 +7,18 @@ mod video_server;
 
 use std::{
     process::Command,
-    sync::atomic::{AtomicU16, Ordering},
+    sync::atomic::{AtomicBool, AtomicU16, Ordering},
+    sync::Mutex,
 };
 use tauri::{
     menu::{Menu, MenuItem, PredefinedMenuItem, Submenu},
     Emitter, Manager,
 };
+use tauri_plugin_dialog::{DialogExt, MessageDialogButtons, MessageDialogKind};
 
 static VIDEO_PORT: AtomicU16 = AtomicU16::new(0);
+static IS_EXPORTING: AtomicBool = AtomicBool::new(false);
+static CURRENT_LANG: Mutex<String> = Mutex::new(String::new());
 const GITHUB_URL: &str = "https://github.com/peakchen90/tiny-cut";
 
 struct MenuLabels {
@@ -86,8 +90,6 @@ fn system_menu_lang() -> String {
         .or_else(|_| std::env::var("LANG"))
         .unwrap_or_default()
 }
-
-
 
 fn build_app_menu<R: tauri::Runtime>(
     handle: &tauri::AppHandle<R>,
@@ -175,7 +177,16 @@ fn get_video_port() -> u16 {
 }
 
 #[tauri::command]
+fn set_exporting(exporting: bool) {
+    IS_EXPORTING.store(exporting, Ordering::Relaxed);
+}
+
+#[tauri::command]
 fn set_menu_state(app: tauri::AppHandle, lang: String, has_video: bool, enabled: bool) -> Result<(), String> {
+    if let Ok(mut current) = CURRENT_LANG.lock() {
+        *current = lang.clone();
+    }
+
     #[cfg(not(target_os = "macos"))]
     {
         let _ = app;
@@ -224,14 +235,7 @@ fn main() {
                 let _ = app.emit("file-menu-action", "export-video");
             }
             "help-github-info" => {
-                #[cfg(target_os = "macos")]
                 let _ = Command::new("open").arg(GITHUB_URL).spawn();
-                #[cfg(target_os = "windows")]
-                let _ = Command::new("cmd")
-                    .args(["/C", "start", "", GITHUB_URL])
-                    .spawn();
-                #[cfg(all(not(target_os = "macos"), not(target_os = "windows")))]
-                let _ = Command::new("xdg-open").arg(GITHUB_URL).spawn();
             }
             "help-toggle-devtools" => {
                 if let Some(window) = app.get_webview_window("main") {
@@ -261,7 +265,39 @@ fn main() {
 
                 window.center()?;
             }
+
             Ok(())
+        })
+        .on_window_event(|window, event| {
+            if let tauri::WindowEvent::CloseRequested { api, .. } = event {
+                if IS_EXPORTING.load(Ordering::Relaxed) {
+                    api.prevent_close();
+
+                    let lang = CURRENT_LANG.lock().map(|l| l.clone()).unwrap_or_default();
+                    let actual_lang = if lang.is_empty() { system_menu_lang() } else { lang };
+                    let messages: serde_json::Value =
+                        serde_json::from_str(i18n_json(&actual_lang)).unwrap_or_default();
+                    let ce = messages.get("confirmExit").cloned().unwrap_or_default();
+                    let title = ce.get("title").and_then(|v| v.as_str()).unwrap_or("Confirm Exit").to_string();
+                    let message = ce.get("message").and_then(|v| v.as_str()).unwrap_or("").to_string();
+                    let confirm = ce.get("exit").and_then(|v| v.as_str()).unwrap_or("Exit").to_string();
+                    let cancel = ce.get("cancel").and_then(|v| v.as_str()).unwrap_or("Cancel").to_string();
+
+                    let handle = window.app_handle().clone();
+                    window
+                        .app_handle()
+                        .dialog()
+                        .message(message)
+                        .title(title)
+                        .kind(MessageDialogKind::Warning)
+                        .buttons(MessageDialogButtons::OkCancelCustom(confirm, cancel))
+                        .show(move |answer| {
+                            if answer {
+                                handle.exit(0);
+                            }
+                        });
+                }
+            }
         })
         .invoke_handler(tauri::generate_handler![
             commands::trim_video,
@@ -269,7 +305,8 @@ fn main() {
             commands::check_file_exists,
             commands::reveal_in_file_manager,
             get_video_port,
-            set_menu_state
+            set_menu_state,
+            set_exporting
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

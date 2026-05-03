@@ -266,6 +266,7 @@ export default function App() {
         hasVideo: Boolean(filePath),
         enabled: true,
       }).catch(() => {});
+      void invoke("set_exporting", { exporting: false }).catch(() => {});
     });
     return () => setExportModalCloseCallback(null);
   }, [filePath]);
@@ -506,6 +507,7 @@ export default function App() {
               hasVideo: Boolean(filePath),
               enabled: false,
             }).catch(() => {});
+            void invoke("set_exporting", { exporting: true }).catch(() => {});
             void promise.catch(() => {});
           }}
         />

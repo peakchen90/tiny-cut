@@ -56,5 +56,11 @@
     "audioSampleRate": "音訊取樣率",
     "audioChannels": "音訊聲道",
     "audioBitrate": "音訊位元率"
+  },
+  "confirmExit": {
+    "title": "確認退出",
+    "message": "匯出正在進行中，確定要退出嗎？",
+    "exit": "退出",
+    "cancel": "取消"
   }
 }

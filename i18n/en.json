@@ -56,5 +56,11 @@
     "audioSampleRate": "Audio Sample Rate",
     "audioChannels": "Audio Channels",
     "audioBitrate": "Audio Bitrate"
+  },
+  "confirmExit": {
+    "title": "Confirm Exit",
+    "message": "Export is in progress. Are you sure you want to exit?",
+    "exit": "Exit",
+    "cancel": "Cancel"
   }
 }

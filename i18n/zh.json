@@ -56,5 +56,11 @@
     "audioSampleRate": "音频采样率",
     "audioChannels": "音频声道",
     "audioBitrate": "音频码率"
+  },
+  "confirmExit": {
+    "title": "确认退出",
+    "message": "导出正在进行中，确定要退出吗？",
+    "exit": "退出",
+    "cancel": "取消"
   }
 }

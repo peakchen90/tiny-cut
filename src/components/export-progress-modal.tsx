@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from "react";
 import { listen } from "@tauri-apps/api/event";
+import { invoke } from "@tauri-apps/api/core";
 import { Modal, type ModalRef } from "./modal";
 import { t } from "../lib/i18n";
 import { revealInFileManager } from "../lib/tauri";
@@ -44,6 +45,8 @@ function ExportProgressContent({ outputPath, modalRef }: Props) {
       setPercent(p);
       if ((s === "success" || s === "error") && !completedRef.current) {
         completedRef.current = true;
+        // 导出完成，立即重置导出状态
+        void invoke("set_exporting", { exporting: false }).catch(() => {});
         const ref = modalRef.current;
         if (ref) {
           ref.close();
