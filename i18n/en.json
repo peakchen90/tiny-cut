@@ -26,6 +26,8 @@
     "exportFailed": "Export failed",
     "exportSettings": "Export Settings",
     "exportPath": "Export Path",
+    "outputPath": "Output Path",
+    "reveal": "Reveal in File Manager",
     "select": "Select",
     "estimatedSize": "Estimated Size",
     "original": "Original"

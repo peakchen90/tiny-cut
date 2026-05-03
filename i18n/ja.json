@@ -26,6 +26,8 @@
     "exportFailed": "書き出しに失敗しました",
     "exportSettings": "書き出し設定",
     "exportPath": "書き出し先",
+    "outputPath": "出力パス",
+    "reveal": "ファイルマネージャーで表示",
     "select": "選択",
     "estimatedSize": "推定サイズ",
     "original": "オリジナル"

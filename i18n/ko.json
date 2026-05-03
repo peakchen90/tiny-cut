@@ -26,6 +26,8 @@
     "exportFailed": "내보내기 실패",
     "exportSettings": "내보내기 설정",
     "exportPath": "내보내기 경로",
+    "outputPath": "출력 경로",
+    "reveal": "파일 탐색기에서 보기",
     "select": "선택",
     "estimatedSize": "예상 크기",
     "original": "원본"

@@ -919,12 +919,62 @@ body::before {
   min-width: 300px;
 }
 
-.export-progress-path {
-  font-size: 13px;
-  color: rgba(255, 255, 255, 0.6);
+.export-progress-path-row {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.export-progress-label {
+  font-size: 12px;
+  font-weight: 500;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+.export-progress-input-wrapper {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  gap: 4px;
+}
+
+.export-progress-input {
+  flex: 1;
+  min-width: 0;
+  padding: 6px 10px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  color: rgba(255, 255, 255, 0.7);
+  font-size: 12px;
+  font-family: inherit;
+  outline: none;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+  box-sizing: border-box;
+}
+
+.export-progress-reveal {
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.export-progress-reveal:hover {
+  border-color: rgba(255, 255, 255, 0.3);
+  background: rgba(255, 255, 255, 0.06);
+  color: rgba(255, 255, 255, 0.9);
 }
 
 .export-progress-bar {
@@ -932,6 +982,12 @@ body::before {
   background: rgba(255, 255, 255, 0.1);
   border-radius: 3px;
   overflow: hidden;
+}
+
+.export-status-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .export-progress-bar-fill {

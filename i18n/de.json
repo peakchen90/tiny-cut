@@ -26,6 +26,8 @@
     "exportFailed": "Export fehlgeschlagen",
     "exportSettings": "Exporteinstellungen",
     "exportPath": "Exportpfad",
+    "outputPath": "Ausgabepfad",
+    "reveal": "Im Dateimanager anzeigen",
     "select": "Auswählen",
     "estimatedSize": "Geschätzte Größe",
     "original": "Original"

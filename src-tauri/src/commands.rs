@@ -4,6 +4,43 @@ use tauri::{command, AppHandle};
 
 use crate::ffmpeg;
 
+#[command]
+pub async fn reveal_in_file_manager(path: String) -> Result<(), String> {
+    let path = Path::new(&path);
+    if !path.exists() {
+        return Err("Path does not exist".into());
+    }
+
+    #[cfg(target_os = "macos")]
+    {
+        std::process::Command::new("open")
+            .args(["-R", &path.to_string_lossy()])
+            .spawn()
+            .map_err(|e| format!("Failed to open file manager: {}", e))?;
+    }
+
+    #[cfg(target_os = "windows")]
+    {
+        std::process::Command::new("explorer")
+            .args(["/select,", &path.to_string_lossy()])
+            .spawn()
+            .map_err(|e| format!("Failed to open file manager: {}", e))?;
+    }
+
+    #[cfg(target_os = "linux")]
+    {
+        // Try xdg-open with parent directory
+        if let Some(parent) = path.parent() {
+            std::process::Command::new("xdg-open")
+                .arg(&parent.to_string_lossy())
+                .spawn()
+                .map_err(|e| format!("Failed to open file manager: {}", e))?;
+        }
+    }
+
+    Ok(())
+}
+
 #[derive(Serialize)]
 pub struct TrimResult {
     success: bool,

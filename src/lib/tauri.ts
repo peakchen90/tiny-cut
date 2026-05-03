@@ -7,6 +7,10 @@ interface TrimResult {
   output_path: string | null;
 }
 
+export async function revealInFileManager(path: string): Promise<void> {
+  return invoke("reveal_in_file_manager", { path });
+}
+
 export async function getVideoInfo(inputPath: string): Promise<VideoInfo> {
   return invoke("get_video_info", { inputPath });
 }

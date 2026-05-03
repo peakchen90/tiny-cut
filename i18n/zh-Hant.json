@@ -26,6 +26,8 @@
     "exportFailed": "匯出失敗",
     "exportSettings": "匯出設定",
     "exportPath": "匯出位置",
+    "outputPath": "輸出路徑",
+    "reveal": "在檔案管理器中顯示",
     "select": "選擇",
     "estimatedSize": "預估大小",
     "original": "原始"

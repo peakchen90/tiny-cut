@@ -438,8 +438,10 @@ export default function ExportModal({ filePath, trimRange, onClose, onExport, on
   return (
     <Modal
       title={t("export.exportSettings")}
-      width={560}
+      width={450}
       footer={footerContent}
+      maskClosable={false}
+      keyboard={false}
       onClose={onClose}
       onInit={onBringToFront}
     >

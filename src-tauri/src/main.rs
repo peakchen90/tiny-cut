@@ -265,6 +265,7 @@ fn main() {
             commands::trim_video,
             commands::get_video_info,
             commands::check_file_exists,
+            commands::reveal_in_file_manager,
             get_video_port,
             set_menu_state
         ])
