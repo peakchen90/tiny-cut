@@ -48,15 +48,15 @@ function ExportProgressContent({ outputPath, modalRef }: Props) {
         if (ref) {
           ref.close();
         }
-        const handleClose = () => {
-          onExportModalClose?.();
-          Modal.closeAll();
-        };
         Modal.open({
           title: t("export.export"),
           width: 420,
           keyboard: false,
           maskClosable: false,
+          showClose: true,
+          onClose: () => {
+            onExportModalClose?.();
+          },
           content: () => (
             <ExportResultContent
               outputPath={outputPath}
@@ -64,13 +64,6 @@ function ExportProgressContent({ outputPath, modalRef }: Props) {
               percent={p}
               errorMessage={s === "error" ? message : undefined}
             />
-          ),
-          footer: (
-            <div className="modal-footer-right">
-              <button className="btn-export" onClick={handleClose}>
-                {t("export.done")}
-              </button>
-            </div>
           ),
         });
       }
