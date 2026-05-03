@@ -638,9 +638,46 @@ body::before {
   margin-bottom: 8px;
 }
 
-/* ── Modal Narrow ── */
-.modal-narrow {
-  width: 400px;
+/* ── Modal Buttons ── */
+.modal-btn-cancel {
+  padding: 8px 20px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: transparent;
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.modal-btn-cancel:hover {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.modal-btn-ok {
+  padding: 8px 24px;
+  border-radius: 8px;
+  border: none;
+  background: #FFD60A;
+  color: #000;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.modal-btn-ok:hover {
+  background: #ffe14d;
+}
+
+.modal-btn-ok:active {
+  transform: scale(0.97);
+}
+
+.modal-btn-ok:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* ── Info Table ── */

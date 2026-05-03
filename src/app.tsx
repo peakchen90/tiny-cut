@@ -7,7 +7,8 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import VideoPlayer from "./components/video-player";
 import Timeline from "./components/timeline";
 import ExportModal from "./components/export-modal";
-import { InfoModal } from "./components/info-modal";
+import { openInfoModal } from "./components/info-modal";
+import { Modal } from "./components/modal";
 import { formatTimeWithMs } from "./lib/time";
 import { getLang, t } from "./lib/i18n";
 import { getFileName } from "./lib/path";
@@ -22,7 +23,6 @@ export default function App() {
   const videoRef = useRef<HTMLVideoElement | null>(null);
   const [showMenu, setShowMenu] = useState(false);
   const [showExportModal, setShowExportModal] = useState(false);
-  const [showInfoModal, setShowInfoModal] = useState(false);
   const [exportStatus, setExportStatus] = useState<ExportStatus>("idle");
   const [toast, setToast] = useState<{ message: string; type: "success" | "error" } | null>(null);
   const [videoKey, setVideoKey] = useState(0);
@@ -119,8 +119,8 @@ export default function App() {
 
   const handleInfoClick = useCallback(() => {
     if (!filePath) return;
-    setShowInfoModal(true);
     setShowMenu(false);
+    openInfoModal(filePath);
   }, [filePath]);
 
   const handleExportStart = useCallback(() => {
@@ -173,16 +173,8 @@ export default function App() {
       const target = e.target as HTMLElement;
       if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') return;
 
-      // ESC: Close modals
+      // ESC: Close menu (modals handle ESC internally)
       if (e.key === 'Escape') {
-        if (showExportModal && exportStatus !== "exporting") {
-          setShowExportModal(false);
-          return;
-        }
-        if (showInfoModal) {
-          setShowInfoModal(false);
-          return;
-        }
         if (showMenu) {
           setShowMenu(false);
           return;
@@ -323,7 +315,7 @@ export default function App() {
     setTrimRange({ startTime: 0, endTime: 0 });
     setShowMenu(false);
     setShowExportModal(false);
-    setShowInfoModal(false);
+    Modal.closeAll();
     setExportStatus("idle");
     setToast(null);
     setDragOver(false);
@@ -511,13 +503,6 @@ export default function App() {
               handleExportEnd(status, message);
             }
           }}
-        />
-      )}
-
-      {showInfoModal && (
-        <InfoModal
-          filePath={filePath}
-          onClose={() => setShowInfoModal(false)}
         />
       )}
 

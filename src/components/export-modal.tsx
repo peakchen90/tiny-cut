@@ -3,6 +3,7 @@ import { save } from "@tauri-apps/plugin-dialog";
 import { getVideoInfo, trimVideo, checkFileExists } from "../lib/tauri";
 import { t } from "../lib/i18n";
 import { getFileNameWithoutExtension } from "../lib/path";
+import { Modal } from "./modal";
 import type { VideoInfo, ExportStatus, TrimRange } from "../types/trim";
 
 interface Props {
@@ -171,17 +172,14 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
   useEffect(() => {
     const fmt = FORMAT_OPTIONS[formatIdx];
     const defaultName = getFileNameWithoutExtension(filePath);
-    // Get directory path, handle both Windows and macOS paths
     const dirMatch = filePath.match(/^(.*?)[/\\][^/\\]+$/);
     const dir = selectedDirRef.current || (dirMatch ? dirMatch[1] : '');
     const now = new Date();
     const ts = `${String(now.getMonth() + 1).padStart(2, '0')}${String(now.getDate()).padStart(2, '0')}${String(now.getHours()).padStart(2, '0')}${String(now.getMinutes()).padStart(2, '0')}`;
-    // Use the same path separator as the original path
     const separator = dir.includes('\\') || filePath.includes('\\') ? '\\' : '/';
     setOutputPath(`${dir}${separator}${defaultName}_${ts}.${fmt.ext}`);
   }, [filePath, formatIdx]);
 
-  // Check for duplicate filename and add (n) suffix
   useEffect(() => {
     if (!outputPath) return;
     const timer = setTimeout(async () => {
@@ -189,11 +187,9 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
       let counter = 2;
       try {
         const exists = await checkFileExists(path);
-        console.log("Checking:", path, "exists:", exists);
         while (exists) {
           const ext = path.split('.').pop();
           const base = path.substring(0, path.lastIndexOf('.'));
-          // Remove existing (n) suffix if any
           const cleanBase = base.replace(/\(\d+\)$/, '');
           path = `${cleanBase}(${counter}).${ext}`;
           counter++;
@@ -201,7 +197,6 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
           if (!nextExists) break;
         }
         if (path !== outputPath) {
-          console.log("Updating path to:", path);
           setOutputPath(path);
         }
       } catch (err) {
@@ -232,7 +227,6 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
     const fmt = FORMAT_OPTIONS[formatIdx];
     const ext = `.${fmt.ext}`;
     if (!outputPath.endsWith(ext)) {
-      // Remove any existing extension and add correct one
       const withoutExt = outputPath.replace(/\.[^/.]+$/, '');
       setOutputPath(`${withoutExt}${ext}`);
     }
@@ -260,7 +254,6 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
 
   const trimDuration = trimRange.endTime - trimRange.startTime;
   const videoCodec = videoCodecOptions[videoCodecIdx];
-  // Stream copy from a non-zero start can miss reference frames and show black leading frames.
   const shouldEncodeOriginalStart = !!videoInfo && ["H.264", "H.265"].includes(videoInfo.codec) && !videoCodec?.value && trimRange.startTime > 0;
   const shouldEncodeVideo = resolutionIdx !== 0 || fpsIdx !== 0 || !!videoCodec?.value || shouldEncodeOriginalStart;
   const shouldEncodeAudio = audioBitrateIdx !== 0 || !!videoInfo && !isAudioCopySafeForFormat(FORMAT_OPTIONS[formatIdx].value, videoInfo.audio_codec);
@@ -333,7 +326,6 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
     const audioBitrate = audioBitrateOptions[audioBitrateIdx];
 
     try {
-      // Calculate scaled bitrate based on resolution ratio
       const bitrate = shouldEncodeVideo && videoInfo ? estimateVideoBitrate(videoInfo, res.width, res.height, f.value, videoCodec?.value || videoInfo.codec) : undefined;
 
       const result = await trimVideo(
@@ -362,134 +354,111 @@ export default function ExportModal({ filePath, trimRange, onClose, onExportStar
     }
   };
 
-  return (
-    <div className="modal-overlay" onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}>
-      <div className="modal">
-        <div className="modal-header">
-          <h2>{t("export.exportSettings")}</h2>
-          <button className="modal-close" onClick={onClose}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round">
-              <line x1="18" y1="6" x2="6" y2="18" />
-              <line x1="6" y1="6" x2="18" y2="18" />
-            </svg>
-          </button>
-        </div>
-
-        <div className="modal-body">
-          {loading ? (
-            <div className="modal-loading">{t("video.loadingVideoInfo")}</div>
-          ) : error ? (
-            <div className="modal-error">{error}</div>
-          ) : videoInfo && (
-            <>
-              <div className="modal-section">
-                <div className="modal-section-title">{t("export.exportPath")}</div>
-                <div className="output-path-row">
-                  <input
-                    className="output-path-input"
-                    type="text"
-                    value={outputPath}
-                    onChange={(e) => setOutputPath(e.target.value)}
-                    onBlur={handleBlur}
-                    placeholder={t("export.exportPath")}
-                  />
-                  <button className="btn-select-path" onClick={handleSelectPath}>{t("export.select")}</button>
-                </div>
-              </div>
-
-              <div className="modal-section">
-                <div className="modal-section-title">{t("video.resolution")}</div>
-                <div className="option-pills">
-                  {resolutionOptions.map((opt, i) => (
-                    <button
-                      key={i}
-                      className={`option-pill ${i === resolutionIdx ? "option-pill-active" : ""}`}
-                      onClick={() => setResolutionIdx(i)}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="modal-section">
-                <div className="modal-section-title">{t("video.fps")}</div>
-                <div className="option-pills">
-                  {fpsOptions.map((opt, i) => (
-                    <button
-                      key={i}
-                      className={`option-pill ${i === fpsIdx ? "option-pill-active" : ""}`}
-                      onClick={() => setFpsIdx(i)}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="modal-section">
-                <div className="modal-section-title">{t("video.audioBitrate")}</div>
-                <div className="option-pills">
-                  {audioBitrateOptions.map((opt, i) => (
-                    <button
-                      key={i}
-                      className={`option-pill ${i === audioBitrateIdx ? "option-pill-active" : ""}`}
-                      onClick={() => setAudioBitrateIdx(i)}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="modal-section">
-                <div className="modal-section-title">{t("video.videoCodec")}</div>
-                <div className="option-pills">
-                  {videoCodecOptions.map((opt, i) => (
-                    <button
-                      key={i}
-                      className={`option-pill ${i === videoCodecIdx ? "option-pill-active" : ""}`}
-                      onClick={() => setVideoCodecIdx(i)}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
-              <div className="modal-section">
-                <div className="modal-section-title">{t("video.format")}</div>
-                <div className="option-pills">
-                  {FORMAT_OPTIONS.map((opt, i) => (
-                    <button
-                      key={i}
-                      className={`option-pill ${i === formatIdx ? "option-pill-active" : ""}`}
-                      onClick={() => setFormatIdx(i)}
-                    >
-                      {opt.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            </>
-          )}
-        </div>
-
-        <div className="modal-footer">
-          <div className="modal-footer-info">
-            <span className="modal-footer-label">{t("export.estimatedSize")}</span>
-            <span className="modal-footer-value">{formatSize(estimatedSize)}</span>
-            <span className="modal-footer-sep">/</span>
-            <span className="modal-footer-label">{t("editor.trimDuration")}</span>
-            <span className="modal-footer-value">{formatDuration(trimDuration)}</span>
-          </div>
-          <div className="modal-footer-right">
-            <button className="btn-export" onClick={handleExport} disabled={loading || exporting || !outputPath}>
-              {exporting ? t("export.exporting") : t("export.export")}
-            </button>
-          </div>
+  const bodyContent = loading ? (
+    <div className="modal-loading">{t("video.loadingVideoInfo")}</div>
+  ) : error ? (
+    <div className="modal-error">{error}</div>
+  ) : videoInfo ? (
+    <>
+      <div className="modal-section">
+        <div className="modal-section-title">{t("export.exportPath")}</div>
+        <div className="output-path-row">
+          <input
+            className="output-path-input"
+            type="text"
+            value={outputPath}
+            onChange={(e) => setOutputPath(e.target.value)}
+            onBlur={handleBlur}
+            placeholder={t("export.exportPath")}
+          />
+          <button className="btn-select-path" onClick={handleSelectPath}>{t("export.select")}</button>
         </div>
       </div>
-    </div>
+
+      <div className="modal-section">
+        <div className="modal-section-title">{t("video.resolution")}</div>
+        <div className="option-pills">
+          {resolutionOptions.map((opt, i) => (
+            <button key={i} className={`option-pill ${i === resolutionIdx ? "option-pill-active" : ""}`} onClick={() => setResolutionIdx(i)}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="modal-section">
+        <div className="modal-section-title">{t("video.fps")}</div>
+        <div className="option-pills">
+          {fpsOptions.map((opt, i) => (
+            <button key={i} className={`option-pill ${i === fpsIdx ? "option-pill-active" : ""}`} onClick={() => setFpsIdx(i)}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="modal-section">
+        <div className="modal-section-title">{t("video.audioBitrate")}</div>
+        <div className="option-pills">
+          {audioBitrateOptions.map((opt, i) => (
+            <button key={i} className={`option-pill ${i === audioBitrateIdx ? "option-pill-active" : ""}`} onClick={() => setAudioBitrateIdx(i)}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="modal-section">
+        <div className="modal-section-title">{t("video.videoCodec")}</div>
+        <div className="option-pills">
+          {videoCodecOptions.map((opt, i) => (
+            <button key={i} className={`option-pill ${i === videoCodecIdx ? "option-pill-active" : ""}`} onClick={() => setVideoCodecIdx(i)}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      <div className="modal-section">
+        <div className="modal-section-title">{t("video.format")}</div>
+        <div className="option-pills">
+          {FORMAT_OPTIONS.map((opt, i) => (
+            <button key={i} className={`option-pill ${i === formatIdx ? "option-pill-active" : ""}`} onClick={() => setFormatIdx(i)}>
+              {opt.label}
+            </button>
+          ))}
+        </div>
+      </div>
+    </>
+  ) : null;
+
+  const footerContent = (
+    <>
+      <div className="modal-footer-info">
+        <span className="modal-footer-label">{t("export.estimatedSize")}</span>
+        <span className="modal-footer-value">{formatSize(estimatedSize)}</span>
+        <span className="modal-footer-sep">/</span>
+        <span className="modal-footer-label">{t("editor.trimDuration")}</span>
+        <span className="modal-footer-value">{formatDuration(trimDuration)}</span>
+      </div>
+      <div className="modal-footer-right">
+        <button className="btn-export" onClick={handleExport} disabled={loading || exporting || !outputPath}>
+          {exporting ? t("export.exporting") : t("export.export")}
+        </button>
+      </div>
+    </>
+  );
+
+  return (
+    <Modal
+      title={t("export.exportSettings")}
+      width={560}
+      footer={footerContent}
+      maskClosable={!exporting}
+      keyboard={!exporting}
+      onClose={onClose}
+    >
+      {bodyContent}
+    </Modal>
   );
 }
