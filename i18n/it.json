@@ -1,0 +1,67 @@
+{
+  "app": {
+    "appTitle": "TinyCut",
+    "openVideo": "Apri video",
+    "noVideo": "Nessun video caricato",
+    "loadVideo": "Carica un video per impostare l'intervallo di taglio",
+    "selectVideo": "Seleziona un file video per iniziare",
+    "dropVideo": "Seleziona o trascina un video",
+    "more": "Altro"
+  },
+  "editor": {
+    "start": "Inizio",
+    "end": "Fine",
+    "duration": "Durata",
+    "trimDuration": "Durata del taglio",
+    "shiftHint": "Tieni premuto Shift per il controllo fotogramma per fotogramma"
+  },
+  "export": {
+    "fastTrim": "Taglio rapido",
+    "fastTrimDesc": "Senza ricodifica, più veloce, con leggero scostamento temporale",
+    "preciseTrim": "Taglio preciso",
+    "preciseTrimDesc": "Con ricodifica, tempo preciso, più lento",
+    "export": "Esporta",
+    "exporting": "Esportazione...",
+    "remaining": "Tempo rimanente stimato: {time}",
+    "exportSuccess": "Esportazione completata",
+    "exportFailed": "Esportazione non riuscita",
+    "exportSettings": "Impostazioni di esportazione",
+    "exportPath": "Posizione di esportazione",
+    "outputPath": "Percorso di output",
+    "reveal": "Mostra nel file manager",
+    "select": "Seleziona",
+    "estimatedSize": "Dimensione stimata",
+    "original": "Originale"
+  },
+  "menu": {
+    "file": "File",
+    "newProject": "Nuovo",
+    "info": "Informazioni",
+    "exportVideo": "Esporta",
+    "help": "Aiuto",
+    "githubInfo": "Informazioni GitHub",
+    "toggleDevTools": "Attiva/disattiva strumenti per sviluppatori"
+  },
+  "video": {
+    "videoInfo": "Informazioni sul video originale",
+    "resolution": "Risoluzione",
+    "fps": "FPS video",
+    "format": "Formato video",
+    "bitrate": "Bitrate",
+    "loadingVideoInfo": "Lettura delle informazioni del video...",
+    "fileName": "Nome file",
+    "fileSize": "Dimensione file",
+    "duration": "Durata",
+    "videoCodec": "Codec video",
+    "audioCodec": "Codec audio",
+    "audioSampleRate": "Frequenza di campionamento audio",
+    "audioChannels": "Canali audio",
+    "audioBitrate": "Bitrate audio"
+  },
+  "confirmExit": {
+    "title": "Conferma uscita",
+    "message": "L'esportazione è in corso. Vuoi davvero uscire?",
+    "exit": "Esci",
+    "cancel": "Annulla"
+  }
+}
