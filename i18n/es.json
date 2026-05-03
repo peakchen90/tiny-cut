@@ -28,6 +28,7 @@
     "exportPath": "Ruta de exportación",
     "outputPath": "Ruta de salida",
     "reveal": "Mostrar en el explorador",
+    "done": "Hecho",
     "select": "Seleccionar",
     "estimatedSize": "Tamaño estimado",
     "original": "Original"

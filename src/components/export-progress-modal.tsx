@@ -15,6 +15,12 @@ interface Props {
   modalRef: React.MutableRefObject<ModalRef | null>;
 }
 
+let onExportModalClose: (() => void) | null = null;
+
+export function setExportModalCloseCallback(callback: (() => void) | null) {
+  onExportModalClose = callback;
+}
+
 export function openExportProgressModal(outputPath: string): ModalRef {
   const modalRef: { current: ModalRef | null } = { current: null };
   modalRef.current = Modal.open({
@@ -42,6 +48,10 @@ function ExportProgressContent({ outputPath, modalRef }: Props) {
         if (ref) {
           ref.close();
         }
+        const handleClose = () => {
+          onExportModalClose?.();
+          Modal.closeAll();
+        };
         Modal.open({
           title: t("export.export"),
           width: 420,
@@ -54,6 +64,13 @@ function ExportProgressContent({ outputPath, modalRef }: Props) {
               percent={p}
               errorMessage={s === "error" ? message : undefined}
             />
+          ),
+          footer: (
+            <div className="modal-footer-right">
+              <button className="btn-export" onClick={handleClose}>
+                {t("export.done")}
+              </button>
+            </div>
           ),
         });
       }

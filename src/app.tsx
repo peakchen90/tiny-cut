@@ -7,13 +7,15 @@ import { getCurrentWindow } from "@tauri-apps/api/window";
 import VideoPlayer from "./components/video-player";
 import Timeline from "./components/timeline";
 import ExportModal from "./components/export-modal";
-import { openExportProgressModal } from "./components/export-progress-modal";
+import { openExportProgressModal, setExportModalCloseCallback } from "./components/export-progress-modal";
 import { openInfoModal } from "./components/info-modal";
 import { Modal } from "./components/modal";
 import { formatTimeWithMs } from "./lib/time";
 import { getLang, t } from "./lib/i18n";
 import { getFileName } from "./lib/path";
 import type { TrimRange } from "./types/trim";
+
+let exportProgressOpen = false;
 
 export default function App() {
   const [filePath, setFilePath] = useState("");
@@ -99,11 +101,13 @@ export default function App() {
   }, []);
 
   const handleNewProject = useCallback(async () => {
+    if (exportProgressOpen) return;
     setShowMenu(false);
     await handleOpenVideo();
   }, []);
 
   const handleExportClick = useCallback(() => {
+    if (exportProgressOpen) return;
     setShowMenu(false);
     if (showExportModal) {
       exportBringToFrontRef.current?.();
@@ -117,7 +121,7 @@ export default function App() {
   }, [showExportModal]);
 
   const handleInfoClick = useCallback(() => {
-    if (!filePath) return;
+    if (!filePath || exportProgressOpen) return;
     setShowMenu(false);
     openInfoModal(filePath);
   }, [filePath]);
@@ -162,7 +166,7 @@ export default function App() {
       }
 
       // Space: Toggle play
-      if (e.code === "Space" && filePath) {
+      if (e.code === "Space" && filePath && !exportProgressOpen) {
         e.preventDefault();
         togglePlay();
         return;
@@ -171,7 +175,7 @@ export default function App() {
       // Cmd/Ctrl+key shortcuts (macOS: Command only, Windows/Linux: Ctrl only)
       // Only trigger with exactly Cmd/Ctrl, no other modifiers (Shift, Alt)
       const modKey = isMac ? e.metaKey : e.ctrlKey;
-      if (modKey && !e.shiftKey && !e.altKey) {
+      if (modKey && !e.shiftKey && !e.altKey && !exportProgressOpen) {
         if (e.code === "KeyN") {
           e.preventDefault();
           handleNewProject();
@@ -213,13 +217,15 @@ export default function App() {
     void invoke("set_menu_state", {
       lang: getLang(),
       hasVideo: Boolean(filePath),
+      enabled: !exportProgressOpen,
     }).catch(() => {});
-  }, [filePath]);
+  }, [filePath, exportProgressOpen]);
 
   useEffect(() => {
     let unlistenMenu: (() => void) | undefined;
 
     void listen<string>("file-menu-action", (event) => {
+      if (exportProgressOpen) return;
       if (event.payload === "new-project") {
         void handleNewProject();
         return;
@@ -252,6 +258,18 @@ export default function App() {
     return () => document.removeEventListener('mousedown', handleClickOutside);
   }, [showMenu]);
 
+  useEffect(() => {
+    setExportModalCloseCallback(() => {
+      exportProgressOpen = false;
+      void invoke("set_menu_state", {
+        lang: getLang(),
+        hasVideo: Boolean(filePath),
+        enabled: true,
+      }).catch(() => {});
+    });
+    return () => setExportModalCloseCallback(null);
+  }, [filePath]);
+
   const [dragOver, setDragOver] = useState(false);
 
   useEffect(() => {
@@ -260,6 +278,7 @@ export default function App() {
         setDragOver(true);
       } else if (event.payload.type === "drop") {
         setDragOver(false);
+        if (exportProgressOpen) return;
         const paths = event.payload.paths;
         if (paths.length > 0) {
           const path = paths[0];
@@ -481,6 +500,12 @@ export default function App() {
           onExport={(outputPath, promise) => {
             setShowExportModal(false);
             openExportProgressModal(outputPath);
+            exportProgressOpen = true;
+            void invoke("set_menu_state", {
+              lang: getLang(),
+              hasVideo: Boolean(filePath),
+              enabled: false,
+            }).catch(() => {});
             void promise.catch(() => {});
           }}
         />

@@ -28,6 +28,7 @@
     "exportPath": "匯出位置",
     "outputPath": "輸出路徑",
     "reveal": "在檔案管理器中顯示",
+    "done": "完成",
     "select": "選擇",
     "estimatedSize": "預估大小",
     "original": "原始"

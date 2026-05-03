@@ -93,21 +93,22 @@ fn build_app_menu<R: tauri::Runtime>(
     handle: &tauri::AppHandle<R>,
     lang: &str,
     has_video: bool,
+    enabled: bool,
 ) -> tauri::Result<Menu<R>> {
     let labels = menu_labels(lang);
     let new_project = MenuItem::with_id(
         handle,
         "file-new-project",
         labels.new_project,
-        true,
+        enabled,
         Some("CmdOrCtrl+N"),
     )?;
-    let info = MenuItem::with_id(handle, "file-info", labels.info, true, Some("CmdOrCtrl+I"))?;
+    let info = MenuItem::with_id(handle, "file-info", labels.info, enabled, Some("CmdOrCtrl+I"))?;
     let export_video = MenuItem::with_id(
         handle,
         "file-export-video",
         labels.export_video,
-        true,
+        enabled,
         Some("CmdOrCtrl+E"),
     )?;
 
@@ -116,11 +117,11 @@ fn build_app_menu<R: tauri::Runtime>(
             handle,
             "file-menu",
             labels.file,
-            true,
+            enabled,
             &[&new_project, &info, &export_video],
         )?
     } else {
-        Submenu::with_id_and_items(handle, "file-menu", labels.file, true, &[&new_project])?
+        Submenu::with_id_and_items(handle, "file-menu", labels.file, enabled, &[&new_project])?
     };
 
     let github_info = MenuItem::with_id(
@@ -174,18 +175,19 @@ fn get_video_port() -> u16 {
 }
 
 #[tauri::command]
-fn set_menu_state(app: tauri::AppHandle, lang: String, has_video: bool) -> Result<(), String> {
+fn set_menu_state(app: tauri::AppHandle, lang: String, has_video: bool, enabled: bool) -> Result<(), String> {
     #[cfg(not(target_os = "macos"))]
     {
         let _ = app;
         let _ = lang;
         let _ = has_video;
+        let _ = enabled;
         return Ok(());
     }
 
     #[cfg(target_os = "macos")]
     {
-        let menu = build_app_menu(&app, &lang, has_video).map_err(|err| err.to_string())?;
+        let menu = build_app_menu(&app, &lang, has_video, enabled).map_err(|err| err.to_string())?;
         app.set_menu(menu).map_err(|err| err.to_string())?;
         Ok(())
     }
@@ -210,7 +212,7 @@ fn main() {
 
     #[cfg(target_os = "macos")]
     let builder = builder
-        .menu(|handle| build_app_menu(handle, &system_menu_lang(), false))
+        .menu(|handle| build_app_menu(handle, &system_menu_lang(), false, true))
         .on_menu_event(|app, event| match event.id().as_ref() {
             "file-new-project" => {
                 let _ = app.emit("file-menu-action", "new-project");

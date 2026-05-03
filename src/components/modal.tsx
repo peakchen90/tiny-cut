@@ -130,7 +130,7 @@ function buildRender(
   return () => (
     <div
       className="modal-overlay"
-      onClick={(e) => {
+      onMouseDown={(e) => {
         if (e.target === e.currentTarget) {
           const entries = Array.from(modals.values());
           const top = entries[entries.length - 1];

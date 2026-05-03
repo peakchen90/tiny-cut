@@ -28,6 +28,7 @@
     "exportPath": "내보내기 경로",
     "outputPath": "출력 경로",
     "reveal": "파일 탐색기에서 보기",
+    "done": "완료",
     "select": "선택",
     "estimatedSize": "예상 크기",
     "original": "원본"

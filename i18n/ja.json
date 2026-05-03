@@ -28,6 +28,7 @@
     "exportPath": "書き出し先",
     "outputPath": "出力パス",
     "reveal": "ファイルマネージャーで表示",
+    "done": "完了",
     "select": "選択",
     "estimatedSize": "推定サイズ",
     "original": "オリジナル"
