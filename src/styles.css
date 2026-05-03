@@ -714,6 +714,8 @@ body::before {
   flex: 1;
   word-break: break-all;
   white-space: normal;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .info-value-path {
@@ -782,6 +784,9 @@ body::before {
   overflow-x: auto;
   white-space: nowrap;
   box-sizing: border-box;
+  cursor: text;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .output-path-input:focus {
@@ -955,6 +960,9 @@ body::before {
   text-overflow: ellipsis;
   white-space: nowrap;
   box-sizing: border-box;
+  cursor: text;
+  -webkit-user-select: text;
+  user-select: text;
 }
 
 .export-progress-reveal {

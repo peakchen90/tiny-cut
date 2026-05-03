@@ -219,18 +219,6 @@ export default function ExportModal({ filePath, trimRange, onClose, onExport, on
     }
   };
 
-  const handleBlur = () => {
-    if (!outputPath) return;
-    const dirMatch = outputPath.match(/^(.*?)[/\\][^/\\]+$/);
-    selectedDirRef.current = dirMatch ? dirMatch[1] : "";
-    const fmt = FORMAT_OPTIONS[formatIdx];
-    const ext = `.${fmt.ext}`;
-    if (!outputPath.endsWith(ext)) {
-      const withoutExt = outputPath.replace(/\.[^/.]+$/, '');
-      setOutputPath(`${withoutExt}${ext}`);
-    }
-  };
-
   const resolutionOptions = useMemo(() => {
     if (!videoInfo) return [];
     return getResolutionOptions(videoInfo.width, videoInfo.height);
@@ -353,8 +341,7 @@ export default function ExportModal({ filePath, trimRange, onClose, onExport, on
             className="output-path-input"
             type="text"
             value={outputPath}
-            onChange={(e) => setOutputPath(e.target.value)}
-            onBlur={handleBlur}
+            readOnly
             placeholder={t("export.exportPath")}
           />
           <button className="btn-select-path" onClick={handleSelectPath}>{t("export.select")}</button>
