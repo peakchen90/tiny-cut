@@ -956,8 +956,6 @@ body::before {
   font-size: 12px;
   font-family: inherit;
   outline: none;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
   box-sizing: border-box;
   cursor: text;
